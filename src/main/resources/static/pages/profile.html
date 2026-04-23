@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Profile</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>User Profile</h1>
+            <p>Profile data is loaded through `GET /users/{id}` and management actions stay on this page.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/index.html">Home</a>
+            <a class="nav-pill" href="/pages/login.html">Login</a>
+            <a class="nav-pill" href="/pages/register.html">Register</a>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <section class="panel">
+            <span class="eyebrow">Profile Lookup</span>
+            <h2 class="section-title">Load current user</h2>
+            <p class="subtle">The page reads the user ID from `localStorage` or from the URL query `?id=...`.</p>
+
+            <div class="form-grid">
+                <div class="input-row">
+                    <label for="userId">User ID</label>
+                    <input id="userId" type="text" placeholder="Paste UUID if login did not store it">
+                </div>
+
+                <div class="button-row">
+                    <button id="loadProfileButton" class="btn btn-primary" type="button">Load profile</button>
+                    <button id="refreshTokenButton" class="btn btn-secondary" type="button">Refresh token</button>
+                    <button id="logoutButton" class="btn btn-danger" type="button">Log out</button>
+                </div>
+            </div>
+
+            <div id="profileStatus" class="status-box">Waiting for a profile request.</div>
+
+            <div class="stats-grid">
+                <div class="stat">
+                    <strong>Full name</strong>
+                    <span id="profile-fullName">Not loaded</span>
+                </div>
+                <div class="stat">
+                    <strong>Email</strong>
+                    <span id="profile-username">Not loaded</span>
+                </div>
+                <div class="stat">
+                    <strong>Phone</strong>
+                    <span id="profile-phone">Not loaded</span>
+                </div>
+                <div class="stat">
+                    <strong>Status</strong>
+                    <span id="profile-status-value">Not loaded</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <span class="eyebrow">Security Actions</span>
+            <h2 class="section-title">Change password</h2>
+            <p class="subtle">The request goes to `POST /auth/password` with the current bearer token.</p>
+
+            <form id="changePasswordForm" class="form-grid">
+                <div class="input-row">
+                    <label for="oldPassword">Old password</label>
+                    <input id="oldPassword" type="password" minlength="8" maxlength="45" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="newPassword">New password</label>
+                    <input id="newPassword" type="password" minlength="8" maxlength="45" required>
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Change password</button>
+                </div>
+            </form>
+
+            <div id="passwordStatus" class="status-box">Password change is available after login.</div>
+        </section>
+    </div>
+
+    <section class="card" style="margin-top: 22px;">
+        <span class="eyebrow">Session Details</span>
+        <h2 class="section-title">Stored auth context</h2>
+        <div class="stats-grid">
+            <div class="stat">
+                <strong>Email</strong>
+                <span id="session-email">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>User ID</strong>
+                <span id="session-userId">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>Token Type</strong>
+                <span id="session-tokenType">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>Expires At</strong>
+                <span id="session-expiresAt">Not available</span>
+            </div>
+        </div>
+
+        <div class="empty-state" style="margin-top: 18px;">
+            If profile loading fails after a successful login, the most likely backend reason is that `/auth/login` does not return `userId`.
+        </div>
+    </section>
+</div>
+
+<script src="/js/auth-pages.js"></script>
+<script>
+    const {
+        authorizedFetch,
+        fillSessionSummary,
+        formatError,
+        getApiBase,
+        getSession,
+        getUserIdFromPage,
+        readJson,
+        refreshSession,
+        saveSession,
+        setStatus,
+        logoutSession
+    } = window.erpAuth;
+
+    function syncUserIdInput() {
+        const session = getSession();
+        const input = document.getElementById("userId");
+        if (!input.value && session.userId) {
+            input.value = session.userId;
+        }
+    }
+
+    function renderProfile(user) {
+        document.getElementById("profile-fullName").textContent = user.fullName || "-";
+        document.getElementById("profile-username").textContent = user.username || "-";
+        document.getElementById("profile-phone").textContent = user.phone || "-";
+        document.getElementById("profile-status-value").textContent = user.status || "-";
+    }
+
+    async function loadProfile() {
+        setStatus("profileStatus", "Loading profile...", "");
+
+        try {
+            const userId = getUserIdFromPage();
+            document.getElementById("userId").value = userId || "";
+
+            if (!userId) {
+                throw new Error("User ID is required for GET /users/{id}");
+            }
+
+            const response = await authorizedFetch(getApiBase() + "/users/" + encodeURIComponent(userId), {
+                method: "GET"
+            });
+
+            const payload = await readJson(response);
+            if (!response.ok) {
+                throw payload;
+            }
+
+            renderProfile(payload);
+            fillSessionSummary("session");
+            setStatus("profileStatus", "Profile loaded successfully.", "success");
+        } catch (error) {
+            setStatus("profileStatus", formatError(error), "error");
+        }
+    }
+
+    document.getElementById("loadProfileButton").addEventListener("click", loadProfile);
+
+    document.getElementById("refreshTokenButton").addEventListener("click", async function () {
+        setStatus("profileStatus", "Refreshing token...", "");
+
+        try {
+            const tokens = await refreshSession();
+            saveSession(tokens, {userId: getSession().userId});
+            fillSessionSummary("session");
+            setStatus("profileStatus", "Token refreshed successfully.", "success");
+        } catch (error) {
+            setStatus("profileStatus", formatError(error), "error");
+        }
+    });
+
+    document.getElementById("logoutButton").addEventListener("click", async function () {
+        setStatus("profileStatus", "Logging out...", "");
+
+        try {
+            await logoutSession();
+            fillSessionSummary("session");
+            renderProfile({fullName: "Not loaded", username: "Not loaded", phone: "Not loaded", status: "Not loaded"});
+            document.getElementById("userId").value = "";
+            setStatus("profileStatus", "Session cleared. Redirecting to login page...", "success");
+
+            setTimeout(() => {
+                window.location.href = "/pages/login.html";
+            }, 500);
+        } catch (error) {
+            setStatus("profileStatus", formatError(error), "error");
+        }
+    });
+
+    document.getElementById("changePasswordForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        setStatus("passwordStatus", "Updating password...", "");
+
+        try {
+            const response = await authorizedFetch(getApiBase() + "/auth/password", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    oldPassword: document.getElementById("oldPassword").value,
+                    newPassword: document.getElementById("newPassword").value
+                })
+            });
+
+            const payload = await readJson(response);
+            if (!response.ok) {
+                throw payload;
+            }
+
+            saveSession(payload, {userId: getSession().userId});
+            fillSessionSummary("session");
+            document.getElementById("changePasswordForm").reset();
+            setStatus("passwordStatus", "Password changed successfully.", "success");
+        } catch (error) {
+            setStatus("passwordStatus", formatError(error), "error");
+        }
+    });
+
+    fillSessionSummary("session");
+    syncUserIdInput();
+
+    if (getUserIdFromPage()) {
+        loadProfile();
+    }
+</script>
+</body>
+</html>

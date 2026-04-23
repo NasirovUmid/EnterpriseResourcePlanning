@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Registration</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>ERP Registration</h1>
+            <p>Create a new employee account and move directly into the profile area.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/index.html">Home</a>
+            <a class="nav-pill" href="/pages/login.html">Login</a>
+            <a class="nav-pill" href="/pages/profile.html">Profile</a>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <section class="panel">
+            <span class="eyebrow">Create Account</span>
+            <h2 class="section-title">Register page</h2>
+            <p class="subtle">The form follows the current `UserRequestDto` validation rules.</p>
+
+            <form id="registerForm" class="form-grid">
+                <div class="input-row">
+                    <label for="fullname">Full name</label>
+                    <input id="fullname" type="text" minlength="5" maxlength="25" placeholder="John Smith" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="username">Email</label>
+                    <input id="username" type="email" placeholder="employee@erp.local" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" minlength="8" maxlength="30" placeholder="Minimum 8 characters" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="phoneNumber">Phone number</label>
+                    <input id="phoneNumber" type="text" pattern="^(\+)?998\d{9}$" placeholder="+998901234567" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="image">Avatar image</label>
+                    <input id="image" type="file" accept="image/*" required>
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Register</button>
+                    <a class="btn btn-secondary" href="/pages/login.html">I already have an account</a>
+                </div>
+            </form>
+
+            <div id="registerStatus" class="status-box">Ready to create a new ERP user.</div>
+        </section>
+
+        <section class="panel highlight">
+            <span class="eyebrow">What happens next</span>
+            <h2 class="title">Registration also saves your initial session.</h2>
+            <p class="subtle">
+                On success the page stores `accessToken`, `refreshToken`, and `userId`, then redirects to the profile screen.
+            </p>
+            <ul class="note-list">
+                <li>The current backend controller expects multipart field names `data` and `image`.</li>
+                <li>The phone number must match the Uzbekistan format from validation.</li>
+                <li>Profile loading works immediately after registration because the response includes `userId`.</li>
+            </ul>
+        </section>
+    </div>
+</div>
+
+<script src="/js/auth-pages.js"></script>
+<script>
+    const {formatError, getApiBase, readJson, saveSession, setStatus} = window.erpAuth;
+
+    document.getElementById("registerForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        setStatus("registerStatus", "Creating account...", "");
+
+        try {
+            const payload = {
+                fullname: document.getElementById("fullname").value.trim(),
+                username: document.getElementById("username").value.trim(),
+                password: document.getElementById("password").value,
+                phoneNumber: document.getElementById("phoneNumber").value.trim()
+            };
+
+            const formData = new FormData();
+            formData.append("data", new Blob([JSON.stringify(payload)], {type: "application/json"}));
+            formData.append("image", document.getElementById("image").files[0]);
+
+            const response = await fetch(getApiBase() + "/auth/register", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await readJson(response);
+            if (!response.ok) {
+                throw result;
+            }
+
+            saveSession(result, {userId: result.userId});
+            setStatus("registerStatus", "Registration completed. Redirecting to profile page...", "success");
+
+            setTimeout(() => {
+                window.location.href = "/pages/profile.html";
+            }, 500);
+        } catch (error) {
+            setStatus("registerStatus", formatError(error), "error");
+        }
+    });
+</script>
+</body>
+</html>

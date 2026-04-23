@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Login</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>ERP Access</h1>
+            <p>Sign in to continue into the Enterprise Resource Planning workspace.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/index.html">Home</a>
+            <a class="nav-pill" href="/pages/register.html">Register</a>
+            <a class="nav-pill" href="/pages/profile.html">Profile</a>
+        </div>
+    </div>
+
+    <div class="hero-grid">
+        <section class="panel highlight">
+            <span class="eyebrow">ERP Login</span>
+            <h2 class="title">Clean access flow for your team workspace.</h2>
+            <p class="subtle">
+                This page stores the access token, refresh token, user email, and an optional user ID for the profile page.
+            </p>
+            <ul class="note-list">
+                <li>If you already know your user ID, save it here once and the profile page can load immediately.</li>
+                <li>If the backend later returns `userId` on login, this page will use it automatically.</li>
+            </ul>
+        </section>
+
+        <section class="panel">
+            <span class="eyebrow">Sign In</span>
+            <h2 class="section-title">Login page</h2>
+            <p class="subtle">Use your ERP account credentials.</p>
+
+            <form id="loginForm" class="form-grid">
+                <div class="input-row">
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" placeholder="employee@erp.local" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" placeholder="Minimum 8 characters" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="knownUserId">User ID for profile (optional)</label>
+                    <input id="knownUserId" name="knownUserId" type="text" placeholder="UUID, if you already know it">
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Login</button>
+                    <a class="btn btn-secondary" href="/pages/register.html">Create account</a>
+                </div>
+            </form>
+
+            <div id="loginStatus" class="status-box">Waiting for login request.</div>
+        </section>
+    </div>
+
+    <section class="card" style="margin-top: 22px;">
+        <span class="eyebrow">Session Snapshot</span>
+        <h2 class="section-title">Current stored session</h2>
+        <div class="stats-grid">
+            <div class="stat">
+                <strong>Email</strong>
+                <span id="session-email">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>User ID</strong>
+                <span id="session-userId">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>Token Type</strong>
+                <span id="session-tokenType">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>Expires At</strong>
+                <span id="session-expiresAt">Not available</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="/js/auth-pages.js"></script>
+<script>
+    const {formatError, getApiBase, readJson, saveSession, setStatus, fillSessionSummary} = window.erpAuth;
+
+    fillSessionSummary("session");
+
+    document.getElementById("loginForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        setStatus("loginStatus", "Logging in...", "");
+
+        try {
+            const knownUserId = document.getElementById("knownUserId").value.trim();
+            const response = await fetch(getApiBase() + "/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: document.getElementById("email").value.trim(),
+                    password: document.getElementById("password").value
+                })
+            });
+
+            const payload = await readJson(response);
+            if (!response.ok) {
+                throw payload;
+            }
+
+            saveSession(payload, {userId: knownUserId});
+            fillSessionSummary("session");
+            setStatus("loginStatus", "Login completed. Redirecting to profile page...", "success");
+
+            setTimeout(() => {
+                window.location.href = "/pages/profile.html";
+            }, 500);
+        } catch (error) {
+            setStatus("loginStatus", formatError(error), "error");
+        }
+    });
+</script>
+</body>
+</html>

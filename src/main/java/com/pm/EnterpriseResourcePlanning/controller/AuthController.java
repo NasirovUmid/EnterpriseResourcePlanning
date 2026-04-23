@@ -42,9 +42,6 @@ public class AuthController {
     public ResponseEntity<JwtAuthenticationResponseDto> login(@Valid @RequestBody AuthRequestDto authRequestDto) throws NoSuchAlgorithmException {
 
         System.out.println(authRequestDto);
-//
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        AuthRequestDto authRequestDto1 = objectMapper.readValue(authRequestDto, AuthRequestDto.class);
 
         log.info("{}", authRequestDto);
 
