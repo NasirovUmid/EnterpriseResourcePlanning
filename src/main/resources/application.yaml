@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/module_monolith_db
+    username: postgres
+    password: java
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+logging:
+  level:
+    org:
+      springframework:
+      security: DEBUG
+bot:
+  token: 8288659502:AAGdqIl8pIKOhmrE0NL_An3Z48zj75PBwgs
+  username: practiceOfmonitoringbot
+  chatId: "@monitoringservicesstatus"
+
+storageLocation: C:\Java\JAVA\Internship\demo\images
+
+JWT_SECRET: pWuv61GzhDPR3p9kN340TXbdNoy0lfhV1pz2RnAHwuP

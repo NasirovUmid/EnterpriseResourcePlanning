@@ -1,0 +1,35 @@
+package com.pm.EnterpriseResourcePlanning.entity;
+
+import com.pm.EnterpriseResourcePlanning.enums.ProductStatus;
+import com.pm.EnterpriseResourcePlanning.utils.FullAuditEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+public class ProductsEntity extends FullAuditEntity {
+
+    @Id
+    @GeneratedValue
+    @Column(columnDefinition = "uuid DEFAULT gen_random_uuid()", nullable = false, updatable = false)
+    private UUID id;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
+    private Double price;
+
+    @Column(nullable = false)
+    private Integer unit;
+
+    @Column(nullable = true)
+    private ProductStatus status = ProductStatus.DRAFT;
+}

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Auth UI</title>
+    <style>
+        body {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        h2 {
+            color: #38bdf8;
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+        }
+
+        input {
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+        }
+
+        input::placeholder {
+            color: #94a3b8;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        hr {
+            border: 1px solid #334155;
+            margin: 20px 0;
+        }
+
+        pre {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+        }
+
+        p {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div style="max-width: 500px; margin: auto;">
+
+    <h2>Register</h2>
+
+    <form id="registerForm">
+        <input type="text" id="fullname" placeholder="Full name" required/><br/>
+        <input type="email" id="username" placeholder="Email" required/><br/>
+        <input type="password" id="password" placeholder="Password" required/><br/>
+        <input type="text" id="phone" placeholder="+998..." required/><br/>
+        <input type="file" id="image"/><br/>
+        <button type="submit">Register</button>
+    </form>
+
+    <p id="registerStatus"></p>
+
+    <hr/>
+
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Email"/>
+    <input type="password" id="loginPassword" placeholder="Password"/>
+    <button onclick="login()">Login</button>
+
+    <p id="loginStatus"></p>
+
+    <hr/>
+
+    <h2>Protected</h2>
+    <button onclick="getUser()">Get User</button>
+    <pre id="userData"></pre>
+
+</div>
+<script>
+    const BASE_URL = "http://localhost:8080";
+
+    function setStatus(id, text, isError = false) {
+        const el = document.getElementById(id);
+        el.innerText = text;
+        el.style.color = isError ? "red" : "green";
+    }
+
+    // REGISTER
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        try {
+            const data = {
+                fullname: document.getElementById("fullname").value,
+                username: document.getElementById("username").value,
+                password: document.getElementById("password").value,
+                phoneNumber: document.getElementById("phone").value
+            };
+
+            const formData = new FormData();
+
+            formData.append("data", new Blob(
+                [JSON.stringify(data)],
+                {type: "application/json"}));
+
+            const file = document.getElementById("image").files[0];
+            if (file) formData.append("image", file);
+
+            const res = await fetch(BASE_URL + "/auth/register", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) throw result;
+
+            setStatus("registerStatus", "Registered successfully!");
+            console.log(result);
+
+        } catch (err) {
+            setStatus("registerStatus", "Register failed", true);
+            console.error(err);
+        }
+    });
+
+    // LOGIN
+    async function login() {
+        try {
+            const res = await fetch(BASE_URL + "/auth/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    email: document.getElementById("loginEmail").value,
+                    password: document.getElementById("loginPassword").value
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) throw data;
+
+            localStorage.setItem("access", data.accessToken);
+            localStorage.setItem("refresh", data.refreshToken);
+
+            setStatus("loginStatus", "Login success");
+
+        } catch (err) {
+            setStatus("loginStatus", "Login failed", true);
+            console.error(err);
+        }
+    }
+
+    // PROTECTED
+    async function getUser() {
+        try {
+            let access = localStorage.getItem("access");
+
+            let res = await fetch(BASE_URL + "/user/me", {
+                headers: {"Authorization": "Bearer " + access}
+            });
+
+            if (res.status === 401) {
+                const refresh = localStorage.getItem("refresh");
+
+                const refreshRes = await fetch(BASE_URL + "/auth/refresh", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({refreshToken: refresh})
+                });
+
+                const refreshData = await refreshRes.json();
+                localStorage.setItem("access", refreshData.accessToken);
+
+                return getUser();
+            }
+
+            const data = await res.json();
+            document.getElementById("userData").innerText =
+                JSON.stringify(data, null, 2);
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
+</script>
+
+</body>
+</html>
