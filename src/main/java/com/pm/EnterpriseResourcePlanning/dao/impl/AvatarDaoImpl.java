@@ -19,8 +19,8 @@ public class AvatarDaoImpl implements AvatarDao {
     private final AvatarRepository repository;
 
     @Override
-    public AvatarEntity saveAvatar(String url) {
-        return repository.saveAvatar(url).orElseThrow(RuntimeException::new);
+    public AvatarEntity saveAvatar(String url, UUID userId) {
+        return repository.saveAvatar(url, userId).orElseThrow(RuntimeException::new);
     }
 
     @Override

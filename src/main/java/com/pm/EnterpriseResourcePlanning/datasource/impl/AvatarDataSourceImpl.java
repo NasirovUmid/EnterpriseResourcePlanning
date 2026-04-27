@@ -19,15 +19,15 @@ public class AvatarDataSourceImpl extends MessageAlertDataSource implements Avat
     private final AvatarDaoImpl avatarDao;
     private final AvatarMapper avatarMapper;
 
-    public AvatarDataSourceImpl(AlertSystemDao alertSystemDao,AvatarDaoImpl avatarDao, AvatarMapper avatarMapper) {
+    public AvatarDataSourceImpl(AlertSystemDao alertSystemDao, AvatarDaoImpl avatarDao, AvatarMapper avatarMapper) {
         super(alertSystemDao, AvatarDataSourceImpl.class);
         this.avatarDao = avatarDao;
         this.avatarMapper = avatarMapper;
     }
 
     @Override
-    public AvatarEntity saveAvatar(String url) {
-        return execute(() -> avatarDao.saveAvatar(url));
+    public AvatarEntity saveAvatar(String url, UUID userId) {
+        return execute(() -> avatarDao.saveAvatar(url, userId));
     }
 
     @Override

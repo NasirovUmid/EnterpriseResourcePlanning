@@ -11,20 +11,22 @@
     <div class="topbar">
         <div class="brand-block">
             <h1>User Profile</h1>
-            <p>Profile data is loaded through `GET /users/{id}` and management actions stay on this page.</p>
+            <p>Personal info, projects, and organizations are loaded automatically for the current user.</p>
         </div>
         <div class="nav-links">
             <a class="nav-pill" href="/index.html">Home</a>
             <a class="nav-pill" href="/pages/login.html">Login</a>
             <a class="nav-pill" href="/pages/register.html">Register</a>
+            <a class="nav-pill" href="/pages/change-password.html">Change password</a>
+            <a class="nav-pill" href="/pages/admin-panel.html">Admin panel</a>
         </div>
     </div>
 
     <div class="content-grid">
         <section class="panel">
             <span class="eyebrow">Profile Lookup</span>
-            <h2 class="section-title">Load current user</h2>
-            <p class="subtle">The page reads the user ID from `localStorage` or from the URL query `?id=...`.</p>
+            <h2 class="section-title">Current user overview</h2>
+            <p class="subtle">This page reads the user ID from `localStorage` or `?id=...`, then loads user data, projects, and organizations.</p>
 
             <div class="form-grid">
                 <div class="input-row">
@@ -33,13 +35,13 @@
                 </div>
 
                 <div class="button-row">
-                    <button id="loadProfileButton" class="btn btn-primary" type="button">Load profile</button>
-                    <button id="refreshTokenButton" class="btn btn-secondary" type="button">Refresh token</button>
+                    <button id="loadProfileButton" class="btn btn-primary" type="button">Reload profile</button>
+                    <a class="btn btn-secondary" href="/pages/change-password.html">Open change password</a>
                     <button id="logoutButton" class="btn btn-danger" type="button">Log out</button>
                 </div>
             </div>
 
-            <div id="profileStatus" class="status-box">Waiting for a profile request.</div>
+            <div id="profileStatus" class="status-box">Waiting for automatic profile loading.</div>
 
             <div class="stats-grid">
                 <div class="stat">
@@ -61,28 +63,35 @@
             </div>
         </section>
 
-        <section class="panel">
-            <span class="eyebrow">Security Actions</span>
-            <h2 class="section-title">Change password</h2>
-            <p class="subtle">The request goes to `POST /auth/password` with the current bearer token.</p>
+        <section class="panel highlight">
+            <span class="eyebrow">Automatic Session</span>
+            <h2 class="title">Token refresh is now background behavior.</h2>
+            <p class="subtle">
+                Protected requests first try the current access token. If it is expired, the page silently calls `/auth/refresh`. If refresh also fails, the session is cleared and you are redirected to login.
+            </p>
+            <ul class="note-list">
+                <li>No manual refresh button is needed anymore.</li>
+                <li>Reloading profile also reloads organizations and projects.</li>
+                <li>The profile still needs a valid `userId` because your current API is based on `GET /users/{id}`.</li>
+            </ul>
+        </section>
+    </div>
 
-            <form id="changePasswordForm" class="form-grid">
-                <div class="input-row">
-                    <label for="oldPassword">Old password</label>
-                    <input id="oldPassword" type="password" minlength="8" maxlength="45" required>
-                </div>
+    <div class="content-grid" style="margin-top: 22px;">
+        <section class="card">
+            <span class="eyebrow">Projects</span>
+            <h2 class="section-title">User projects</h2>
+            <div id="projectsList" class="collection-list">
+                <div class="empty-state">Projects will appear here after profile load.</div>
+            </div>
+        </section>
 
-                <div class="input-row">
-                    <label for="newPassword">New password</label>
-                    <input id="newPassword" type="password" minlength="8" maxlength="45" required>
-                </div>
-
-                <div class="button-row">
-                    <button class="btn btn-primary" type="submit">Change password</button>
-                </div>
-            </form>
-
-            <div id="passwordStatus" class="status-box">Password change is available after login.</div>
+        <section class="card">
+            <span class="eyebrow">Organizations</span>
+            <h2 class="section-title">User organizations</h2>
+            <div id="organizationsList" class="collection-list">
+                <div class="empty-state">Organizations will appear here after profile load.</div>
+            </div>
         </section>
     </div>
 
@@ -107,10 +116,6 @@
                 <span id="session-expiresAt">Not available</span>
             </div>
         </div>
-
-        <div class="empty-state" style="margin-top: 18px;">
-            If profile loading fails after a successful login, the most likely backend reason is that `/auth/login` does not return `userId`.
-        </div>
     </section>
 </div>
 
@@ -124,10 +129,9 @@
         getSession,
         getUserIdFromPage,
         readJson,
-        refreshSession,
-        saveSession,
         setStatus,
-        logoutSession
+        logoutSession,
+        redirectToLogin
     } = window.erpAuth;
 
     function syncUserIdInput() {
@@ -145,29 +149,78 @@
         document.getElementById("profile-status-value").textContent = user.status || "-";
     }
 
+    function renderProjects(projects) {
+        const container = document.getElementById("projectsList");
+        if (!projects || projects.length === 0) {
+            container.innerHTML = '<div class="empty-state">No projects found for this user.</div>';
+            return;
+        }
+
+        container.innerHTML = projects.map(function (project) {
+            return `
+                <article class="collection-item">
+                    <h3>${project.name || "Unnamed project"}</h3>
+                    <div class="inline-meta">
+                        <span class="tag">${project.status || "Unknown status"}</span>
+                        <span class="tag">${project.id || "No id"}</span>
+                    </div>
+                </article>
+            `;
+        }).join("");
+    }
+
+    function renderOrganizations(organizations) {
+        const container = document.getElementById("organizationsList");
+        if (!organizations || organizations.length === 0) {
+            container.innerHTML = '<div class="empty-state">No organizations found for this user.</div>';
+            return;
+        }
+
+        container.innerHTML = organizations.map(function (organization) {
+            return `
+                <article class="collection-item">
+                    <h3>${organization.name || "Unnamed organization"}</h3>
+                    <p>INN: ${organization.inn || "-"}</p>
+                    <p>Address: ${organization.address || "-"}</p>
+                    <div class="inline-meta">
+                        <span class="tag">${organization.id || "No id"}</span>
+                    </div>
+                </article>
+            `;
+        }).join("");
+    }
+
+    async function fetchJsonOrThrow(url) {
+        const response = await authorizedFetch(url, {method: "GET"});
+        const payload = await readJson(response);
+        if (!response.ok) {
+            throw payload;
+        }
+        return payload;
+    }
+
     async function loadProfile() {
-        setStatus("profileStatus", "Loading profile...", "");
+        setStatus("profileStatus", "Loading profile, projects, and organizations...", "");
 
         try {
             const userId = getUserIdFromPage();
             document.getElementById("userId").value = userId || "";
 
             if (!userId) {
-                throw new Error("User ID is required for GET /users/{id}");
+                throw new Error("User ID is required for profile loading");
             }
 
-            const response = await authorizedFetch(getApiBase() + "/users/" + encodeURIComponent(userId), {
-                method: "GET"
-            });
+            const [user, projects, organizations] = await Promise.all([
+                fetchJsonOrThrow(getApiBase() + "/users/" + encodeURIComponent(userId)),
+                fetchJsonOrThrow(getApiBase() + "/projects/users-projects/" + encodeURIComponent(userId)),
+                fetchJsonOrThrow(getApiBase() + "/organizations/user-organization/" + encodeURIComponent(userId))
+            ]);
 
-            const payload = await readJson(response);
-            if (!response.ok) {
-                throw payload;
-            }
-
-            renderProfile(payload);
+            renderProfile(user);
+            renderProjects(projects);
+            renderOrganizations(organizations);
             fillSessionSummary("session");
-            setStatus("profileStatus", "Profile loaded successfully.", "success");
+            setStatus("profileStatus", "Profile data loaded successfully.", "success");
         } catch (error) {
             setStatus("profileStatus", formatError(error), "error");
         }
@@ -175,71 +228,26 @@
 
     document.getElementById("loadProfileButton").addEventListener("click", loadProfile);
 
-    document.getElementById("refreshTokenButton").addEventListener("click", async function () {
-        setStatus("profileStatus", "Refreshing token...", "");
-
-        try {
-            const tokens = await refreshSession();
-            saveSession(tokens, {userId: getSession().userId});
-            fillSessionSummary("session");
-            setStatus("profileStatus", "Token refreshed successfully.", "success");
-        } catch (error) {
-            setStatus("profileStatus", formatError(error), "error");
-        }
-    });
-
     document.getElementById("logoutButton").addEventListener("click", async function () {
         setStatus("profileStatus", "Logging out...", "");
 
         try {
             await logoutSession();
-            fillSessionSummary("session");
-            renderProfile({fullName: "Not loaded", username: "Not loaded", phone: "Not loaded", status: "Not loaded"});
-            document.getElementById("userId").value = "";
             setStatus("profileStatus", "Session cleared. Redirecting to login page...", "success");
-
-            setTimeout(() => {
-                window.location.href = "/pages/login.html";
-            }, 500);
+            setTimeout(function () {
+                redirectToLogin();
+            }, 400);
         } catch (error) {
             setStatus("profileStatus", formatError(error), "error");
-        }
-    });
-
-    document.getElementById("changePasswordForm").addEventListener("submit", async function (event) {
-        event.preventDefault();
-        setStatus("passwordStatus", "Updating password...", "");
-
-        try {
-            const response = await authorizedFetch(getApiBase() + "/auth/password", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    oldPassword: document.getElementById("oldPassword").value,
-                    newPassword: document.getElementById("newPassword").value
-                })
-            });
-
-            const payload = await readJson(response);
-            if (!response.ok) {
-                throw payload;
-            }
-
-            saveSession(payload, {userId: getSession().userId});
-            fillSessionSummary("session");
-            document.getElementById("changePasswordForm").reset();
-            setStatus("passwordStatus", "Password changed successfully.", "success");
-        } catch (error) {
-            setStatus("passwordStatus", formatError(error), "error");
         }
     });
 
     fillSessionSummary("session");
     syncUserIdInput();
 
-    if (getUserIdFromPage()) {
+    if (!getSession().accessToken && !getSession().refreshToken) {
+        redirectToLogin();
+    } else {
         loadProfile();
     }
 </script>

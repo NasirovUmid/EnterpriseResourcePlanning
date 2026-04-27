@@ -81,6 +81,13 @@
         Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
     }
 
+    function redirectToLogin() {
+        const currentPath = window.location.pathname || "";
+        if (!currentPath.endsWith("/pages/login.html")) {
+            window.location.href = "/pages/login.html";
+        }
+    }
+
     async function readJson(response) {
         const text = await response.text();
         if (!text) {
@@ -97,6 +104,8 @@
     async function refreshSession() {
         const session = getSession();
         if (!session.refreshToken) {
+            clearSession();
+            redirectToLogin();
             throw new Error("Refresh token not found");
         }
 
@@ -110,6 +119,8 @@
 
         const payload = await readJson(response);
         if (!response.ok) {
+            clearSession();
+            redirectToLogin();
             throw payload || new Error("Unable to refresh token");
         }
 
@@ -117,8 +128,17 @@
         return payload;
     }
 
+    function shouldTryRefresh(response) {
+        return response.status === 401 || response.status === 403;
+    }
+
     async function authorizedFetch(url, options) {
         const session = getSession();
+        if (!session.accessToken && !session.refreshToken) {
+            redirectToLogin();
+            throw new Error("Session not found");
+        }
+
         const headers = new Headers(options && options.headers ? options.headers : {});
 
         if (session.accessToken) {
@@ -127,11 +147,16 @@
 
         let response = await fetch(url, {...options, headers});
 
-        if (response.status === 401 && session.refreshToken) {
+        if (shouldTryRefresh(response) && session.refreshToken) {
             await refreshSession();
             const nextSession = getSession();
             headers.set("Authorization", "Bearer " + nextSession.accessToken);
             response = await fetch(url, {...options, headers});
+        }
+
+        if (shouldTryRefresh(response)) {
+            clearSession();
+            redirectToLogin();
         }
 
         return response;
@@ -217,6 +242,7 @@
         getUserIdFromPage,
         parseJwt,
         readJson,
+        redirectToLogin,
         refreshSession,
         saveSession,
         setStatus,

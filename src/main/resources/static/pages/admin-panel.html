@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Admin Panel</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>Admin Panel</h1>
+            <p>One page for creating projects and organizations. Access restriction can be tightened to admins later in the backend.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/index.html">Home</a>
+            <a class="nav-pill" href="/pages/profile.html">Profile</a>
+            <a class="nav-pill" href="/pages/change-password.html">Change password</a>
+            <a class="nav-pill" href="/pages/login.html">Login</a>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <section class="panel">
+            <span class="eyebrow">Create Project</span>
+            <h2 class="section-title">New project</h2>
+            <p class="subtle">Sends `POST /projects` with the current authenticated session.</p>
+
+            <form id="projectForm" class="form-grid">
+                <div class="input-row">
+                    <label for="projectName">Project name</label>
+                    <input id="projectName" type="text" placeholder="ERP Migration" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="projectStatus">Project status</label>
+                    <input id="projectStatus" type="text" placeholder="AWAITING" value="AWAITING" required>
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Create project</button>
+                </div>
+            </form>
+
+            <div id="projectStatusBox" class="status-box">Ready to create a project.</div>
+            <div id="projectResult" class="collection-list"></div>
+        </section>
+
+        <section class="panel">
+            <span class="eyebrow">Create Organization</span>
+            <h2 class="section-title">New organization</h2>
+            <p class="subtle">Sends `POST /organizations` with the current authenticated session.</p>
+
+            <form id="organizationForm" class="form-grid">
+                <div class="input-row">
+                    <label for="organizationName">Organization name</label>
+                    <input id="organizationName" type="text" placeholder="PM Group" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="organizationInn">INN</label>
+                    <input id="organizationInn" type="text" placeholder="123456789" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="organizationAddress">Address</label>
+                    <input id="organizationAddress" type="text" placeholder="Tashkent, Yunusabad" required>
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Create organization</button>
+                </div>
+            </form>
+
+            <div id="organizationStatusBox" class="status-box">Ready to create an organization.</div>
+            <div id="organizationResult" class="collection-list"></div>
+        </section>
+    </div>
+
+    <section class="card" style="margin-top: 22px;">
+        <span class="eyebrow">Session Details</span>
+        <h2 class="section-title">Stored auth context</h2>
+        <div class="stats-grid">
+            <div class="stat">
+                <strong>Email</strong>
+                <span id="session-email">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>User ID</strong>
+                <span id="session-userId">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>Token Type</strong>
+                <span id="session-tokenType">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>Expires At</strong>
+                <span id="session-expiresAt">Not available</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="/js/auth-pages.js"></script>
+<script>
+    const {
+        authorizedFetch,
+        fillSessionSummary,
+        formatError,
+        getApiBase,
+        getSession,
+        readJson,
+        setStatus,
+        redirectToLogin
+    } = window.erpAuth;
+
+    function renderSingleResult(targetId, title, lines) {
+        const container = document.getElementById(targetId);
+        container.innerHTML = `
+            <article class="collection-item">
+                <h3>${title}</h3>
+                ${lines.map(function (line) { return `<p>${line}</p>`; }).join("")}
+            </article>
+        `;
+    }
+
+    document.getElementById("projectForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        setStatus("projectStatusBox", "Creating project...", "");
+
+        try {
+            const response = await authorizedFetch(getApiBase() + "/projects", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: document.getElementById("projectName").value.trim(),
+                    status: document.getElementById("projectStatus").value.trim()
+                })
+            });
+
+            const payload = await readJson(response);
+            if (!response.ok) {
+                throw payload;
+            }
+
+            document.getElementById("projectForm").reset();
+            document.getElementById("projectStatus").value = "AWAITING";
+            renderSingleResult("projectResult", payload.name || "Project created", [
+                "ID: " + (payload.id || "-"),
+                "Status: " + (payload.status || "-")
+            ]);
+            setStatus("projectStatusBox", "Project created successfully.", "success");
+        } catch (error) {
+            setStatus("projectStatusBox", formatError(error), "error");
+        }
+    });
+
+    document.getElementById("organizationForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        setStatus("organizationStatusBox", "Creating organization...", "");
+
+        try {
+            const response = await authorizedFetch(getApiBase() + "/organizations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: document.getElementById("organizationName").value.trim(),
+                    inn: document.getElementById("organizationInn").value.trim(),
+                    address: document.getElementById("organizationAddress").value.trim()
+                })
+            });
+
+            const payload = await readJson(response);
+            if (!response.ok) {
+                throw payload;
+            }
+
+            document.getElementById("organizationForm").reset();
+            renderSingleResult("organizationResult", payload.name || "Organization created", [
+                "ID: " + (payload.id || "-"),
+                "INN: " + (payload.inn || "-"),
+                "Address: " + (payload.address || "-")
+            ]);
+            setStatus("organizationStatusBox", "Organization created successfully.", "success");
+        } catch (error) {
+            setStatus("organizationStatusBox", formatError(error), "error");
+        }
+    });
+
+    fillSessionSummary("session");
+
+    if (!getSession().accessToken && !getSession().refreshToken) {
+        redirectToLogin();
+    }
+</script>
+</body>
+</html>

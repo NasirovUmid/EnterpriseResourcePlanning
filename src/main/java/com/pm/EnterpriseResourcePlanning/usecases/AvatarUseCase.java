@@ -2,8 +2,13 @@ package com.pm.EnterpriseResourcePlanning.usecases;
 
 import com.pm.EnterpriseResourcePlanning.datasource.impl.AvatarDataSourceImpl;
 import com.pm.EnterpriseResourcePlanning.entity.AvatarEntity;
+import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
+import com.pm.EnterpriseResourcePlanning.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,31 +29,78 @@ public class AvatarUseCase {
     @Value("${storageLocation}")
     private String storageUrl;
 
-    public AvatarEntity saveFile(MultipartFile file) throws IOException {
+    public AvatarEntity saveFile(MultipartFile file, UUID userId) throws IOException {
 
         if (file.isEmpty()) throw new RuntimeException();
 
-        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
-
-        String fileName = storageUrl + "_" + UUID.randomUUID() + "."+extension;
+        String fileName = extractExt(file);
 
         Path root = Paths.get(storageUrl);
 
         if (!Files.exists(root)) {
-
             Files.createDirectories(root);
         }
 
         Files.copy(file.getInputStream(), root.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
 
-        AvatarEntity savedAvatar = dataSource.saveAvatar(fileName);
-
-        return savedAvatar;
+        return dataSource.saveAvatar(fileName, userId);
     }
 
-    public void updateAvatar(String url,UUID id) {
+    public void updateAvatar(MultipartFile file, UUID id) throws IOException {
 
-        dataSource.updateAvatar(url,id);
+        String avatar = dataSource.getAvatarById(id).url();
+        Path path = Paths.get(storageUrl + avatar);
+        Files.deleteIfExists(path);
 
+        if (file.isEmpty()) throw new BadRequestException();
+
+        String fileName = extractExt(file);
+
+        Path root = Paths.get(storageUrl);
+
+        if (!Files.exists(root)) {
+            Files.createDirectories(root);
+        }
+
+        Files.copy(file.getInputStream(), root.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+
+        dataSource.updateAvatar(fileName, id);
+
+    }
+
+    public Resource getAvatarById(UUID userId) {
+
+        String imageName = dataSource.getAvatarById(userId).url();
+
+        Path path = Paths.get(storageUrl + imageName);
+
+        Resource resource = new FileSystemResource(path);
+
+        if (!resource.exists()) {
+            throw new NotFoundException(ErrorMessages.FILE_NOT_FOUND, userId);
+        }
+
+        return resource;
+    }
+
+    public void deleteAvatar(UUID userId) throws IOException {
+
+        String avatar = dataSource.getAvatarById(userId).url();
+
+        removePhysicallyFile(avatar);
+    }
+
+    private String extractExt(MultipartFile file) {
+
+        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
+
+        return UUID.randomUUID() + "." + extension;
+    }
+
+    private void removePhysicallyFile(String name) throws IOException {
+
+        Path path = Paths.get(storageUrl + name);
+
+        Files.deleteIfExists(path);
     }
 }

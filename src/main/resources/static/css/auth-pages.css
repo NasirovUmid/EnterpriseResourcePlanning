@@ -281,6 +281,46 @@ a:hover {
     color: var(--muted);
 }
 
+.collection-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.collection-item {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: #f8fbfc;
+    border: 1px solid var(--border);
+}
+
+.collection-item h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+}
+
+.collection-item p {
+    margin: 4px 0 0;
+    color: var(--muted);
+}
+
+.inline-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.tag {
+    display: inline-flex;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #eaf4f7;
+    color: var(--primary-dark);
+    font-size: 12px;
+    font-weight: 700;
+}
+
 @media (max-width: 640px) {
     .page-shell {
         width: min(100% - 20px, 1120px);

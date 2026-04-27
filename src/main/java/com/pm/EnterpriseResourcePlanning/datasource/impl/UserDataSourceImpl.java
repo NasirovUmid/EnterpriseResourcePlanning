@@ -27,9 +27,9 @@ public class UserDataSourceImpl extends MessageAlertDataSource implements UserDa
     }
 
     @Override
-    public UserResponseDto createUser(String fullName, String userName, String password, String phoneNumber, UUID avatarId) {
+    public UserResponseDto createUser(String fullName, String userName, String password, String phoneNumber) {
 
-        return execute(() -> userMapper.toDto(userDao.saveUser(fullName, userName, password, avatarId, phoneNumber)));
+        return execute(() -> userMapper.toDto(userDao.saveUser(fullName, userName, password, phoneNumber)));
     }
 
     @Override

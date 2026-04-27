@@ -19,4 +19,7 @@ public class AvatarEntity extends FullAuditEntity {
 
     @Column(nullable = false)
     private String url;
+
+    @Column(name = "user_id")
+    private UUID UserId;
 }

@@ -25,7 +25,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     private final Field<String> usernameField = field("username", String.class);
     private final Field<String> passwordField = field("password", String.class);
     private final Field<String> phoneNumberField = field("phone_number", String.class);
-    private final Field<UUID> avatarIdField = field("avatar_id", UUID.class);
     private final Field<Object> statusField = DSL.field("status", DSL.name("user_status"));
 
     public CustomUserRepositoryImpl(DSLContext dsl) {
@@ -33,11 +32,11 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     }
 
     @Override
-    public Optional<UserEntity> saveUser(String fullName, String name, String password, UUID avatarId, String phone) {
+    public Optional<UserEntity> saveUser(String fullName, String name, String password, String phone) {
         var record = dsl.insertInto(tableName)
-                .columns(fullNameField, usernameField, passwordField, phoneNumberField, avatarIdField, statusField)
-                .values(fullName, name, password, phone, avatarId, DSL.field("?::user_status", UserStatus.ACTIVE.name()))
-                .returning(idField, fullNameField, usernameField, passwordField, phoneNumberField, avatarIdField, statusField)
+                .columns(fullNameField, usernameField, passwordField, phoneNumberField, statusField)
+                .values(fullName, name, password, phone, DSL.field("?::user_status", UserStatus.ACTIVE.name()))
+                .returning(idField, fullNameField, usernameField, passwordField, phoneNumberField, statusField)
                 .fetchOne();
 
         System.out.println(record);
@@ -52,7 +51,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
                 .username(record.get(usernameField))
                 .password(record.get(passwordField))
                 .phoneNumber(record.get(phoneNumberField))
-                .avatarId(record.get(avatarIdField))
                 .userStatus(UserStatus.valueOf(String.valueOf(record.get(statusField))))
                 .build();
 

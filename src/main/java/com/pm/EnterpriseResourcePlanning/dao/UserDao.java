@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface UserDao {
 
 
-    UserEntity saveUser(String fullName, String name, String password, UUID avatarId, String phone) throws Exception;
+    UserEntity saveUser(String fullName, String name, String password, String phone) throws Exception;
 
     boolean checkAccess(UUID userId, String moduleName, String actionName);
 

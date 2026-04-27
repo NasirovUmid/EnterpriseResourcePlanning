@@ -9,7 +9,6 @@ import com.pm.EnterpriseResourcePlanning.dto.requestdtos.UserRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.UserUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.RoleResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.UserResponseDto;
-import com.pm.EnterpriseResourcePlanning.entity.AvatarEntity;
 import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
 import com.pm.EnterpriseResourcePlanning.enums.RoleStatus;
@@ -45,11 +44,11 @@ public class UserUseCase {
             throw new AlreadyExistsException(ErrorMessages.USER_ALREADY_EXISTS, userRequestDto.username());
         }
 
-        AvatarEntity avatarEntity = avatarUseCase.saveFile(avatar);
+        UserResponseDto responseDto = userDataSource.createUser(userRequestDto.fullname(), userRequestDto.username(), userRequestDto.password(), userRequestDto.phoneNumber());
 
-        UserResponseDto userResponseDto = userDataSource.createUser(userRequestDto.fullname(), userRequestDto.username(), userRequestDto.password(), userRequestDto.phoneNumber(), avatarEntity.getId());
+        avatarUseCase.saveFile(avatar, responseDto.id());
 
-        return userResponseDto;
+        return responseDto;
     }
 
     public Page<UserResponseDto> getUsersPage(int page, int size, UserFilterDto userFilterDto, String sort) {
@@ -69,6 +68,7 @@ public class UserUseCase {
     }
 
     public UserResponseDto getUserById(UUID id) {
+
         return userDataSource.getUserById(id);
     }
 

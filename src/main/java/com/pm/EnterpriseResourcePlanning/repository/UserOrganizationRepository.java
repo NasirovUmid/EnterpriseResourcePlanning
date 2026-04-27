@@ -1,5 +1,6 @@
 package com.pm.EnterpriseResourcePlanning.repository;
 
+import com.pm.EnterpriseResourcePlanning.entity.OrganizationEntity;
 import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 
 import java.util.List;
@@ -15,4 +16,5 @@ public interface UserOrganizationRepository {
 
     List<UserEntity> getOrganizationUsers(UUID organizationId);
 
+    List<OrganizationEntity> getUserOrganizations(UUID userId);
 }

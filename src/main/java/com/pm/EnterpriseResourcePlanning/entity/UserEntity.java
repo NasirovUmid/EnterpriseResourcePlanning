@@ -33,9 +33,6 @@ public class UserEntity extends FullAuditEntity {
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
-    @Column(name = "avatar_id")
-    private UUID avatarId;
-
     @Column(nullable = true,name = "status")
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus = UserStatus.ACTIVE;

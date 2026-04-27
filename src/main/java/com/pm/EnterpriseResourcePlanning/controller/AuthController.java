@@ -39,13 +39,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JwtAuthenticationResponseDto> login(@Valid @RequestBody AuthRequestDto authRequestDto) throws NoSuchAlgorithmException {
+    public ResponseEntity<AuthUserResponseDto> login(@Valid @RequestBody AuthRequestDto authRequestDto) throws NoSuchAlgorithmException {
 
         System.out.println(authRequestDto);
 
         log.info("{}", authRequestDto);
 
-        JwtAuthenticationResponseDto responseDto = authUseCase.login(authRequestDto);
+        AuthUserResponseDto responseDto = authUseCase.login(authRequestDto);
 
         return ResponseEntity.ok().body(responseDto);
     }

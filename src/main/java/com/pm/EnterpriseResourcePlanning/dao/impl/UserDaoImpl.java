@@ -20,8 +20,8 @@ public class UserDaoImpl implements UserDao {
     private final UserRepository repository;
 
     @Override
-    public UserEntity saveUser(String fullName, String name, String password, UUID avatarId, String phone) {
-        return repository.saveUser(fullName, name, password, avatarId, phone).orElseThrow(RuntimeException::new);
+    public UserEntity saveUser(String fullName, String name, String password, String phone) {
+        return repository.saveUser(fullName, name, password,  phone).orElseThrow(RuntimeException::new);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public UserEntity getUserById(UUID id) {
-        return repository.getUserById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.USER_NOT_FOUND, id));
+        return repository.getUserEntityById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.USER_NOT_FOUND, id));
     }
 
     @Override

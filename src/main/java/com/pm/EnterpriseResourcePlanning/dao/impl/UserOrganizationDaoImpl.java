@@ -1,6 +1,7 @@
 package com.pm.EnterpriseResourcePlanning.dao.impl;
 
 import com.pm.EnterpriseResourcePlanning.dao.UserOrganizationDao;
+import com.pm.EnterpriseResourcePlanning.entity.OrganizationEntity;
 import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import com.pm.EnterpriseResourcePlanning.repository.impl.UserOrganizationRepositoryImpl;
 import lombok.RequiredArgsConstructor;
@@ -9,8 +10,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class UserOrganizationDaoImpl implements UserOrganizationDao {
 
     private final UserOrganizationRepositoryImpl repository;
@@ -33,5 +34,10 @@ public class UserOrganizationDaoImpl implements UserOrganizationDao {
     @Override
     public List<UserEntity> getOrganizationUsers(UUID organizationId) {
         return repository.getOrganizationUsers(organizationId);
+    }
+
+    @Override
+    public List<OrganizationEntity> getUserOrganizations(UUID userId) {
+        return repository.getUserOrganizations(userId);
     }
 }

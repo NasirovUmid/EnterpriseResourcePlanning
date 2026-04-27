@@ -4,7 +4,9 @@ import com.pm.EnterpriseResourcePlanning.dao.AlertSystemDao;
 import com.pm.EnterpriseResourcePlanning.dao.impl.UserOrganizationDaoImpl;
 import com.pm.EnterpriseResourcePlanning.datasource.UserOrganizationDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.helper.MessageAlertDataSource;
+import com.pm.EnterpriseResourcePlanning.dto.responsdtos.OrganizationResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.UserResponseDto;
+import com.pm.EnterpriseResourcePlanning.mapper.OrganizationMapper;
 import com.pm.EnterpriseResourcePlanning.mapper.UserMapper;
 import org.springframework.stereotype.Component;
 
@@ -16,11 +18,13 @@ public class UserOrganizationDataSourceImpl extends MessageAlertDataSource imple
 
     private final UserMapper userMapper;
     private final UserOrganizationDaoImpl userOrganizationDao;
+    private final OrganizationMapper organizationMapper;
 
-    public UserOrganizationDataSourceImpl(AlertSystemDao alertSystemDao, UserMapper userMapper, UserOrganizationDaoImpl userOrganizationDao) {
+    public UserOrganizationDataSourceImpl(AlertSystemDao alertSystemDao, UserMapper userMapper, UserOrganizationDaoImpl userOrganizationDao, OrganizationMapper organizationMapper) {
         super(alertSystemDao, UserOrganizationDataSourceImpl.class);
         this.userMapper = userMapper;
         this.userOrganizationDao = userOrganizationDao;
+        this.organizationMapper = organizationMapper;
     }
 
     @Override
@@ -41,5 +45,10 @@ public class UserOrganizationDataSourceImpl extends MessageAlertDataSource imple
     @Override
     public List<UserResponseDto> getOrganizationUsers(UUID organizationId) {
         return execute(() -> userOrganizationDao.getOrganizationUsers(organizationId).stream().map(userMapper::toDto).toList());
+    }
+
+    @Override
+    public List<OrganizationResponseDto> getUserOrganizations(UUID userId) {
+        return execute(() -> userOrganizationDao.getUserOrganizations(userId).stream().map(organizationMapper::toDto).toList());
     }
 }

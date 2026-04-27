@@ -51,9 +51,9 @@ public class AuthUseCase {
             throw new AlreadyExistsException(ErrorMessages.USER_ALREADY_EXISTS, userRequestDto.username());
         }
 
-        AvatarEntity avatarEntity = avatarUseCase.saveFile(avatar);
+        UserResponseDto user = userDataSource.createUser(userRequestDto.fullname(), userRequestDto.username(), passwordEncoder.encode(userRequestDto.password()), userRequestDto.phoneNumber());
 
-        UserResponseDto user = userDataSource.createUser(userRequestDto.fullname(), userRequestDto.username(), passwordEncoder.encode(userRequestDto.password()), userRequestDto.phoneNumber(), avatarEntity.getId());
+        avatarUseCase.saveFile(avatar, user.id());
 
         JwtAuthenticationResponseDto tokens = jwtUseCase.generateAuthToken(user.username());
 
@@ -63,7 +63,7 @@ public class AuthUseCase {
     }
 
     @Transactional
-    public JwtAuthenticationResponseDto login(AuthRequestDto authRequestDto) throws NoSuchAlgorithmException {
+    public AuthUserResponseDto login(AuthRequestDto authRequestDto) throws NoSuchAlgorithmException {
 
         UserResponseDto userResponseDto = userDataSource.findUserEntitiesByUsername(authRequestDto.email());
 
@@ -75,7 +75,7 @@ public class AuthUseCase {
 
         refreshTokenDataSource.saveRefreshToken(userResponseDto.id(), hashing(responseDto.refreshToken()), Instant.now().plus(Duration.ofHours(5)));
 
-        return responseDto;
+        return new AuthUserResponseDto(userResponseDto.id(), responseDto.accessToken(), responseDto.refreshToken());
     }
 
     @Transactional
@@ -89,7 +89,7 @@ public class AuthUseCase {
 
         String email = jwtUseCase.getEmailFromToken(refreshTokenDto.refreshToken());
 
-        if (jwtUseCase.extractClaims(refreshTokenDto.refreshToken()).get("type").equals(TokenType.REFRESH)) {
+        if (!jwtUseCase.extractClaims(refreshTokenDto.refreshToken()).get("type").equals(TokenType.REFRESH)) {
             throw new BadCredentialsException(ErrorMessages.WRONG_CREDENTIALS, email);
         }
 
@@ -97,7 +97,7 @@ public class AuthUseCase {
 
         refreshTokenDataSource.deleteByToken(hashing(refreshTokenDto.refreshToken()));
 
-        refreshTokenDataSource.saveRefreshToken(refreshToken.getId(), hashing(refreshTokenDto.refreshToken()), Instant.now().plus(Duration.ofHours(5)));
+        refreshTokenDataSource.saveRefreshToken(refreshToken.getUserId(), hashing(responseDto.refreshToken()), Instant.now().plus(Duration.ofHours(5)));
 
         return responseDto;
     }

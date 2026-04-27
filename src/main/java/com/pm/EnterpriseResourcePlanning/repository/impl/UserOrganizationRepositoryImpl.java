@@ -1,5 +1,6 @@
 package com.pm.EnterpriseResourcePlanning.repository.impl;
 
+import com.pm.EnterpriseResourcePlanning.entity.OrganizationEntity;
 import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import com.pm.EnterpriseResourcePlanning.repository.UserOrganizationRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class UserOrganizationRepositoryImpl implements UserOrganizationRepositor
     private final Field<UUID> userField = field("user_id", UUID.class);
     private final Field<UUID> organizationField = field("organization_id", UUID.class);
     private final Table<?> uTable = table("users");
+    private final Table<?> orgTable = table("organizations");
 
     @Override
     public void saveUserOrganization(UUID userId, UUID organizationId) {
@@ -57,5 +59,17 @@ public class UserOrganizationRepositoryImpl implements UserOrganizationRepositor
                 .join(tableName).on(field("users.id").eq(tableName.field(userField)))
                 .where(tableName.field(organizationField).eq(organizationId))
                 .fetchInto(UserEntity.class);
+    }
+
+    @Override
+    public List<OrganizationEntity> getUserOrganizations(UUID userId) {
+
+        return dsl.select(orgTable.fields()) // Выбираем все поля из таблицы организаций
+                .from(orgTable)
+                .join(tableName)
+                .on(field(name("organizations", "id"))
+                        .eq(field(name("user_organizations", "organization_id"))))
+                .where(field(name("user_organizations", "user_id"), UUID.class).eq(userId))
+                .fetchInto(OrganizationEntity.class);
     }
 }

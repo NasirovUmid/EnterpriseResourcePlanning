@@ -60,9 +60,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID>, JpaSpec
     @Transactional(readOnly = true)
     Page<UserEntity> findAll(Specification<UserEntity> specification, Pageable pageable);
 
-    @Query(value = """
-            SELECT ue FROM UserEntity ue where ue.id = :id""")
-    Optional<UserEntity> getUserById(@Param("id") UUID id);
+    Optional<UserEntity> getUserEntityById(UUID id);
 
     boolean existsByUsername(String username);
 

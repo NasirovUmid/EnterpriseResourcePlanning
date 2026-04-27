@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import java.util.List;
 
 @Slf4j
@@ -36,14 +37,25 @@ public class GlobalHandlerException {
         );
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ProblemDetail> handleBadCredentialsException(BadCredentialsException badCredentialsException, HttpServletRequest httpServletRequest) {
+
+        log.error("BAD CREDENTIALS EXCEPTION = {}", badCredentialsException.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiProblem.of(HttpStatus.BAD_REQUEST, badCredentialsException.getMessage(), httpServletRequest, badCredentialsException,
+                        null, badCredentialsException.getEntityEmail())
+        );
+    }
+
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ProblemDetail> handleIllegalStateException(IllegalStateException illegalStateException, HttpServletRequest httpServletRequest) {
 
         log.error("illegalStateException = {}", illegalStateException.getMessage());
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                ApiProblem.of(HttpStatus.CONFLICT, illegalStateException.getMessage(), httpServletRequest, illegalStateException, illegalStateException.getEntityIds(), null)
+        return ResponseEntity.status(400).body(
+                ApiProblem.of(HttpStatus.BAD_REQUEST, illegalStateException.getMessage(), httpServletRequest, illegalStateException, illegalStateException.getEntityIds(), null)
         );
     }
 

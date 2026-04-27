@@ -64,12 +64,12 @@ public class OrganizationController {
     }
 
     @GetMapping("/users/{id}")
-    public List<UserResponseDto> getOrganizationUsers(@PathVariable(name = "id")UUID id){
+    public List<UserResponseDto> getOrganizationUsers(@PathVariable(name = "id") UUID id) {
         return organizationUseCase.getOrganizationUsers(id);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> removeUserOrganizationLink(@Valid @RequestBody IntermediateRequestDto userOrganizationRequestDto){
+    @DeleteMapping("/user")
+    public ResponseEntity<Void> removeUserOrganizationLink(@Valid @RequestBody IntermediateRequestDto userOrganizationRequestDto) {
 
         organizationUseCase.removeUserOrganizationLink(userOrganizationRequestDto);
         return ResponseEntity.ok().build();
@@ -82,5 +82,10 @@ public class OrganizationController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/user-organization/{id}")
+    public List<OrganizationResponseDto> getUserOrganization(@PathVariable(name = "id") UUID userId) {
+
+        return organizationUseCase.getUserOrganizations(userId);
+    }
 
 }

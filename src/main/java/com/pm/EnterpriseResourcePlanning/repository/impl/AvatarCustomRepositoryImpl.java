@@ -22,11 +22,13 @@ public class AvatarCustomRepositoryImpl implements AvatarCustomRepository {
     private final Table<?> tableName = table("avatars");
     private final Field<String> urlField = field("url", String.class);
     private final Field<UUID> avatarField = field("id", UUID.class);
+    private final Field<UUID> userField = field("user_id", UUID.class);
 
     @Override
-    public Optional<AvatarEntity> saveAvatar(String url) {
+    public Optional<AvatarEntity> saveAvatar(String url, UUID userId) {
         var record = dsl.insertInto(tableName)
-                .set(urlField, url)
+                .columns(urlField, userField)
+                .values(url, userId)
                 .returning(avatarField, urlField)
                 .fetchOne();
 
@@ -47,5 +49,15 @@ public class AvatarCustomRepositoryImpl implements AvatarCustomRepository {
                 .from(tableName)
                 .where(avatarField.eq(id))
                 .fetchOptionalInto(AvatarEntity.class);
+    }
+
+    @Override
+    public Optional<AvatarEntity> getAvatarByUserId(UUID userId) {
+
+        return dsl.select(tableName)
+                .from(tableName)
+                .where(userField.eq(userId))
+                .fetchOptionalInto(AvatarEntity.class);
+
     }
 }

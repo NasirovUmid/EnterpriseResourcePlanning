@@ -85,6 +85,10 @@ public class OrganizationUseCase {
         return userOrganizationDataSource.getOrganizationUsers(id);
     }
 
+    public List<OrganizationResponseDto> getUserOrganizations(UUID userId) {
+        return userOrganizationDataSource.getUserOrganizations(userId);
+    }
+
     private Sort toOrganizationEntitySort(String sort) {
 
         if (sort == null || !sort.contains(",")) {
@@ -98,5 +102,6 @@ public class OrganizationUseCase {
                 ? Sort.by(field).descending()
                 : Sort.by(field).ascending();
     }
+
 }
 

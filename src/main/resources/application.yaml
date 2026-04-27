@@ -18,6 +18,6 @@ bot:
   username: practiceOfmonitoringbot
   chatId: "@monitoringservicesstatus"
 
-storageLocation: C:\Java\JAVA\Internship\demo\images
+storageLocation: C:\Java\JAVA\Internship\EnterpriseResourcePlanning\images\
 
 JWT_SECRET: pWuv61GzhDPR3p9kN340TXbdNoy0lfhV1pz2RnAHwuP

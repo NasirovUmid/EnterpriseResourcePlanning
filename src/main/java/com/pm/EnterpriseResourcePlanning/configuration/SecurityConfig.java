@@ -39,6 +39,8 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/auth/register",
+                                "/auth/refresh",
+                                "/auth/log-out",
                                 "/auth/login"
                         ).permitAll()
                         .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")

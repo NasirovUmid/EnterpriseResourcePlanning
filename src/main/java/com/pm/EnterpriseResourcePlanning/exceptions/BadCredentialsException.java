@@ -1,7 +1,9 @@
 package com.pm.EnterpriseResourcePlanning.exceptions;
 
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
+import lombok.Getter;
 
+@Getter
 public class BadCredentialsException extends RuntimeException {
 
     private final String entityEmail;

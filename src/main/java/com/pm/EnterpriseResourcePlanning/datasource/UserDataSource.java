@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface UserDataSource {
 
-    UserResponseDto createUser(String fullName, String userName, String password, String phoneNumber, UUID avatarId);
+    UserResponseDto createUser(String fullName, String userName, String password, String phoneNumber);
 
     Page<UserResponseDto> getUsersPage(Specification<UserEntity> specification, Pageable pageable);
 

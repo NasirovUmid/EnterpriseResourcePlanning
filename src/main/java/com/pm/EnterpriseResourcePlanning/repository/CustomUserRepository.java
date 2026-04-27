@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface CustomUserRepository {
 
-    Optional<UserEntity> saveUser(String fullName, String name, String password, UUID avatarId, String phone);
+    Optional<UserEntity> saveUser(String fullName, String name, String password, String phone);
 }

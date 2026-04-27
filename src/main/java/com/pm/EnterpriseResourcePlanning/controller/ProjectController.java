@@ -65,12 +65,12 @@ public class ProjectController {
     }
 
     @GetMapping("/organizations/{id}")
-    public List<OrganizationResponseDto> getProjectsOrganizations(@PathVariable(name = "id")UUID id){
+    public List<OrganizationResponseDto> getProjectsOrganizations(@PathVariable(name = "id") UUID id) {
         return projectUseCase.getProjectsOrganizations(id);
     }
 
     @GetMapping("/organizations-projects/{id}")
-    public List<ProjectResponseDto> getOrganizationProjects(@PathVariable(name = "id")UUID id){
+    public List<ProjectResponseDto> getOrganizationProjects(@PathVariable(name = "id") UUID id) {
         return projectUseCase.getOrganizationProjects(id);
     }
 
@@ -83,10 +83,40 @@ public class ProjectController {
     }
 
     @DeleteMapping("/organizations")
-    public ResponseEntity<Void> deleteProjectOrganizationLink(@Valid @RequestBody IntermediateRequestDto projectOrganizationRequestDto){
+    public ResponseEntity<Void> deleteProjectOrganizationLink(@Valid @RequestBody IntermediateRequestDto projectOrganizationRequestDto) {
 
         projectUseCase.deleteProjectOrganizationLink(projectOrganizationRequestDto);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/user")
+    public ResponseEntity<Void> saveUserProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
+
+        projectUseCase.saveUserProject(requestDto);
+
+        return ResponseEntity.status(201).build();
+    }
+
+    @PostMapping("/projects-user-exists")
+    public ResponseEntity<Void> existUserProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
+
+        boolean exists = projectUseCase.exists(requestDto);
+
+        return exists ? ResponseEntity.ok().build() : ResponseEntity.status(404).build();
+    }
+
+    @DeleteMapping("/project-user")
+    public ResponseEntity<Void> deleteUserProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
+
+        projectUseCase.removeUserProject(requestDto);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/users-projects/{id}")
+    public List<ProjectResponseDto> getUserProjects(@PathVariable(name = "id")UUID id){
+
+        return projectUseCase.getUserProjects(id);
     }
 }

@@ -2,6 +2,7 @@ package com.pm.EnterpriseResourcePlanning.usecases;
 
 import com.pm.EnterpriseResourcePlanning.datasource.impl.ProjectDataSourceImpl;
 import com.pm.EnterpriseResourcePlanning.datasource.impl.ProjectOrganizationDataSourceImpl;
+import com.pm.EnterpriseResourcePlanning.datasource.impl.UserProjectDataSourceImpl;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProjectRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProjectUpdateRequestDto;
@@ -14,6 +15,7 @@ import com.pm.EnterpriseResourcePlanning.exceptions.AlreadyExistsException;
 import com.pm.EnterpriseResourcePlanning.exceptions.IllegalStateException;
 import com.pm.EnterpriseResourcePlanning.specifications.ProjectSpecifications;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +33,7 @@ public class ProjectUseCase {
 
     private final ProjectDataSourceImpl projectDataSource;
     private final ProjectOrganizationDataSourceImpl projectOrganizationDataSource;
+    private final UserProjectDataSourceImpl userProjectDataSource;
 
     public ProjectResponseDto createProject(ProjectRequestDto projectRequestDto) {
 
@@ -66,7 +69,7 @@ public class ProjectUseCase {
 
         if (!projectDataSource.getProjectById(projectOrganizationDto.uuid()).status().equals(ProjectStatus.AWAITING) ||
                 !projectDataSource.getProjectById(projectOrganizationDto.uuid()).status().equals(ProjectStatus.ACTIVE)) {
-            throw new IllegalStateException(ErrorMessages.PROJECT_IS_NOT_ACCESSIBLE, projectOrganizationDto.uuid(),projectOrganizationDto.uuid1());
+            throw new IllegalStateException(ErrorMessages.PROJECT_IS_NOT_ACCESSIBLE, projectOrganizationDto.uuid(), projectOrganizationDto.uuid1());
         }
 
         if (projectOrganizationExists(projectOrganizationDto)) {
@@ -104,6 +107,22 @@ public class ProjectUseCase {
         return direction.equalsIgnoreCase("desc")
                 ? Sort.by(field).descending()
                 : Sort.by(field).ascending();
+    }
+
+    public void saveUserProject(@Valid IntermediateRequestDto requestDto) {
+        userProjectDataSource.saveUserProject(requestDto.uuid(), requestDto.uuid1());
+    }
+
+    public boolean exists(IntermediateRequestDto requestDto) {
+        return userProjectDataSource.existsUserProject(requestDto.uuid(), requestDto.uuid1());
+    }
+
+    public void removeUserProject(@Valid IntermediateRequestDto requestDto) {
+        userProjectDataSource.removeUserProject(requestDto.uuid(), requestDto.uuid1());
+    }
+
+    public List<ProjectResponseDto> getUserProjects(UUID id) {
+        return userProjectDataSource.getUserProjects(id);
     }
 }
 

@@ -9,6 +9,7 @@ import com.pm.EnterpriseResourcePlanning.dto.responsdtos.UserResponseDto;
 import com.pm.EnterpriseResourcePlanning.usecases.UserUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -78,7 +80,11 @@ public class UserController {
     @GetMapping("/{id}")
     public UserResponseDto getUserById(@PathVariable(name = "id") UUID id) {
 
-        return userUseCase.getUserById(id);
+
+        UserResponseDto responseDto = userUseCase.getUserById(id);
+        log.info("{}",responseDto);
+
+        return responseDto;
 
     }
 
