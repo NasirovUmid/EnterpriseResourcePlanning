@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class ProjectController {
     }
 
     @PostMapping("/organizations")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
     public ResponseEntity<Void> createProjectOrganizationLink(@Valid @RequestBody IntermediateRequestDto projectOrganizationDto) {
 
         projectUseCase.linkProjectOrganization(projectOrganizationDto);
@@ -40,11 +42,12 @@ public class ProjectController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
     public Page<ProjectResponseDto> getProjectsPage(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "") String name,
-            @RequestParam(required = false, defaultValue = "AWAITING") ProjectStatus status,
+            @RequestParam(required = false) ProjectStatus status,
             @RequestParam(required = false, defaultValue = "name,asc") String sort) {
 
         return projectUseCase.getProjectsPage(page, size, name, status, sort);
@@ -54,14 +57,6 @@ public class ProjectController {
     public ProjectResponseDto getProjectById(@PathVariable(name = "id") UUID id) {
 
         return projectUseCase.getProjectById(id);
-    }
-
-    @GetMapping("/organizations-exist")
-    public ResponseEntity<Void> projectOrganizationExists(@Valid @RequestBody IntermediateRequestDto projectRequestDto) {
-
-        boolean doesExists = projectUseCase.projectOrganizationExists(projectRequestDto);
-
-        return doesExists ? ResponseEntity.ok().build() : ResponseEntity.status(404).build();
     }
 
     @GetMapping("/organizations/{id}")
@@ -83,6 +78,7 @@ public class ProjectController {
     }
 
     @DeleteMapping("/organizations")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
     public ResponseEntity<Void> deleteProjectOrganizationLink(@Valid @RequestBody IntermediateRequestDto projectOrganizationRequestDto) {
 
         projectUseCase.deleteProjectOrganizationLink(projectOrganizationRequestDto);
@@ -91,6 +87,7 @@ public class ProjectController {
     }
 
     @PostMapping("/user")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
     public ResponseEntity<Void> saveUserProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
 
         projectUseCase.saveUserProject(requestDto);
@@ -98,14 +95,7 @@ public class ProjectController {
         return ResponseEntity.status(201).build();
     }
 
-    @PostMapping("/projects-user-exists")
-    public ResponseEntity<Void> existUserProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
-
-        boolean exists = projectUseCase.exists(requestDto);
-
-        return exists ? ResponseEntity.ok().build() : ResponseEntity.status(404).build();
-    }
-
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
     @DeleteMapping("/project-user")
     public ResponseEntity<Void> deleteUserProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
 
@@ -115,7 +105,8 @@ public class ProjectController {
     }
 
     @GetMapping("/users-projects/{id}")
-    public List<ProjectResponseDto> getUserProjects(@PathVariable(name = "id")UUID id){
+    @PreAuthorize("hasAnyRole('ADMIN', 'AUDITOR') or #id == authentication.principal.id")
+    public List<ProjectResponseDto> getUserProjects(@PathVariable(name = "id") UUID id) {
 
         return projectUseCase.getUserProjects(id);
     }

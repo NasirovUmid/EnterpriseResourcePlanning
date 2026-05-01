@@ -1,6 +1,7 @@
 package com.pm.EnterpriseResourcePlanning.repository.impl;
 
 import com.pm.EnterpriseResourcePlanning.entity.ProductsEntity;
+import com.pm.EnterpriseResourcePlanning.enums.ProductStatus;
 import com.pm.EnterpriseResourcePlanning.repository.ProductSalesRepository;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -55,6 +56,12 @@ public class ProductSalesRepositoryImpl implements ProductSalesRepository {
         return dsl.select(pTable.fields())
                 .from(pTable)
                 .join(tableName).on(field("products.id").eq(tableName.field(productField)))
-                .fetchInto(ProductsEntity.class);
+                .fetch(record -> ProductsEntity.builder()
+                        .id(record.get("id", UUID.class))
+                        .name(record.get("name", String.class))
+                        .price(record.get("price", Double.class))
+                        .unit(record.get("unit", Integer.class))
+                        .status(ProductStatus.valueOf(record.get("status", String.class)))
+                        .build());
     }
 }

@@ -43,10 +43,7 @@ public class PermissionDataSourceImpl extends MessageAlertDataSource implements 
     @Override
     public PermissionResponseDto savePermission(String name, UUID moduleId, UUID actionId) {
 
-        ModuleEntity module = moduleDao.getModuleById(moduleId);
-        ActionEntity action = actionDao.getActionById(actionId);
-
-        return execute(() -> permissionMapper.toDto(permissionDao.savePermission(name, module, action)));
+        return execute(() -> permissionMapper.toDto(permissionDao.savePermission(name, moduleId, actionId)));
     }
 
     @Override
@@ -56,10 +53,9 @@ public class PermissionDataSourceImpl extends MessageAlertDataSource implements 
 
     @Override
     public void updatePermission(String name, UUID moduleId, UUID actionId, UUID id) {
-        ModuleEntity module = moduleDao.getModuleById(moduleId);
-        ActionEntity action = actionDao.getActionById(actionId);
 
-        execute(() -> permissionDao.updatePermission(name, module, action, id));
+
+        execute(() -> permissionDao.updatePermission(name, moduleId, actionId, id));
     }
 
     @Override

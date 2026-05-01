@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,11 +27,8 @@ public class ActionController {
     }
 
     @GetMapping
-    Page<ActionResponseDto> getActionPages(
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int size
-    ) {
-        return actionUseCase.getActionPages(page, size);
+    List<ActionResponseDto> getActionPages() {
+        return actionUseCase.getActionPages();
     }
 
     @GetMapping("/{id}")

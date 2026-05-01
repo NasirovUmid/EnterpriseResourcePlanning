@@ -32,18 +32,35 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/",
-                                "/index.html",
-                                "/pages/**",
-                                "/css/**",
-                                "/js/**",
-                                "/auth/register",
-                                "/auth/refresh",
-                                "/auth/log-out",
-                                "/auth/login"
-                        ).permitAll()
-                        .requestMatchers(HttpMethod.DELETE).hasRole("ADMIN")
+                        .requestMatchers("/", "/index.html", "/pages/**", "/css/**", "/js/**", "/static/**", "/auth/**", "/users/roles/roles").permitAll()
+                        // Modules: ADMIN full access; any authenticated user can GET; MOD roles can PUT
+                        .requestMatchers(HttpMethod.GET, "/modules/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/modules/**").hasAnyRole("ADMIN", "MOD_PROJECTS", "MOD_ORGANIZATIONS", "MOD_USERS", "MOD_PRODUCTS", "MOD_CONTRACTS")
+                        .requestMatchers("/roles/**", "/permissions/**", "/actions/**", "/modules/**").hasRole("ADMIN")
+                        // Users
+                        .requestMatchers(HttpMethod.GET, "/users").hasAnyRole("ADMIN", "MOD_USERS")
+                        .requestMatchers(HttpMethod.POST, "/users/**").hasAnyRole("ADMIN", "MOD_USERS")
+                        .requestMatchers(HttpMethod.PUT, "/users/**").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/users/**").hasAnyRole("ADMIN", "MOD_USERS")
+                        // Projects
+                        .requestMatchers(HttpMethod.GET, "/projects").hasAnyRole("ADMIN", "MOD_PROJECTS")
+                        .requestMatchers(HttpMethod.POST, "/projects/**").hasAnyRole("ADMIN", "MOD_PROJECTS")
+                        .requestMatchers(HttpMethod.PUT, "/projects/**").hasAnyRole("ADMIN", "MOD_PROJECTS")
+                        .requestMatchers(HttpMethod.PATCH, "/projects/**").hasAnyRole("ADMIN", "MOD_PROJECTS")
+                        // Organizations
+                        .requestMatchers(HttpMethod.GET, "/organizations").hasAnyRole("ADMIN", "MOD_ORGANIZATIONS")
+                        .requestMatchers(HttpMethod.POST, "/organizations/**").hasAnyRole("ADMIN", "MOD_ORGANIZATIONS")
+                        .requestMatchers(HttpMethod.PUT, "/organizations/**").hasAnyRole("ADMIN", "MOD_ORGANIZATIONS")
+                        .requestMatchers(HttpMethod.PATCH, "/organizations/**").hasAnyRole("ADMIN", "MOD_ORGANIZATIONS")
+                        // Products
+                        .requestMatchers(HttpMethod.GET, "/products").hasAnyRole("ADMIN", "MOD_PRODUCTS")
+                        .requestMatchers(HttpMethod.POST, "/products/**").hasAnyRole("ADMIN", "MOD_PRODUCTS")
+                        .requestMatchers(HttpMethod.PUT, "/products/**").hasAnyRole("ADMIN", "MOD_PRODUCTS")
+                        .requestMatchers(HttpMethod.PATCH, "/products/**").hasAnyRole("ADMIN", "MOD_PRODUCTS")
+                        // Contracts
+                        .requestMatchers(HttpMethod.GET, "/contracts").hasAnyRole("ADMIN", "MOD_CONTRACTS")
+                        .requestMatchers(HttpMethod.POST, "/contracts/**").hasAnyRole("ADMIN", "MOD_CONTRACTS")
+                        .requestMatchers(HttpMethod.DELETE, "/contracts/**").hasAnyRole("ADMIN", "MOD_CONTRACTS")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

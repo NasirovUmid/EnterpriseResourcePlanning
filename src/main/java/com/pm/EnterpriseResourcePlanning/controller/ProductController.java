@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -29,11 +30,12 @@ public class ProductController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_PRODUCTS')")
     public Page<ProductResponseDto> getProductPage(
             @RequestParam(defaultValue = "0", name = "page") int page,
             @RequestParam(defaultValue = "20", name = "size") int size,
             @RequestParam(defaultValue = "name,asc", name = "sort") String sort,
-            @Valid @RequestBody ProductFilterDto productFilterDto
+            @Valid @ModelAttribute ProductFilterDto productFilterDto
     ) {
         return productsUseCase.getProductsPage(page, size, productFilterDto, sort);
     }

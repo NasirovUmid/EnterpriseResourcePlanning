@@ -18,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductDaoImpl implements ProductDao {
 
-    private ProductRepository repository;
+    private final ProductRepository repository;
 
     @Override
     public ProductsEntity saveProduct(String name, Double price, Integer unit, ProductStatus status) {
@@ -27,12 +27,12 @@ public class ProductDaoImpl implements ProductDao {
 
     @Override
     public Page<ProductsEntity> getProductsPage(Pageable pageable, Specification<ProductsEntity> specification) {
-        return repository.findAll(specification,pageable);
+        return repository.findAll(specification, pageable);
     }
 
     @Override
-    public void updateProduct(String name, Double price, Integer unit, ProductStatus status) {
-        repository.updateProduct(name, price, unit, status);
+    public void updateProduct(String name, Double price, Integer unit, ProductStatus status, UUID id) {
+        repository.updateProduct(name, price, unit, status, id);
     }
 
     @Override
@@ -42,6 +42,6 @@ public class ProductDaoImpl implements ProductDao {
 
     @Override
     public ProductsEntity getProductById(UUID id) {
-        return repository.getProductById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.PRODUCT_NOT_FOUND, id));
+        return repository.findProductsEntityById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.PRODUCT_NOT_FOUND, id));
     }
 }

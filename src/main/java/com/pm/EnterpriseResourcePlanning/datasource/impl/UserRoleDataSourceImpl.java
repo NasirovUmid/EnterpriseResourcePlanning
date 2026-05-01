@@ -42,4 +42,9 @@ public class UserRoleDataSourceImpl extends MessageAlertDataSource implements Us
     public List<RoleResponseDto> findRolesByUserId(UUID userId) {
         return execute(() -> userRolesDao.findRolesByUserId(userId).stream().map(roleMapper::toDto).toList());
     }
+
+    @Override
+    public List<String> findAllAuthoritiesByUserId(UUID userId) {
+        return execute(() -> userRolesDao.findAllAuthoritiesByUserId(userId));
+    }
 }

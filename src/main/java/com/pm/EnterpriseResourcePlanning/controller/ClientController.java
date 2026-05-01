@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,10 +37,15 @@ public class ClientController {
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "fullname") String sort,
-            @RequestBody ClientFilterDto clientFilterDto
+            @Valid @ModelAttribute ClientFilterDto clientFilterDto
 
     ) {
         return clientUseCase.getClientsPage(page, size, sort, clientFilterDto);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ClientResponseDto> getClient(@PathVariable(name = "id") UUID id) {
+        return ResponseEntity.ok(clientUseCase.getClient(id));
     }
 
     @PostMapping("/contracts")
@@ -50,14 +56,8 @@ public class ClientController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/contracts-exist")
-    public ResponseEntity<Void> exists(@Valid @RequestBody IntermediateRequestDto requestDto) {
 
-        boolean doesExists = clientUseCase.exists(requestDto);
-
-        return doesExists ? ResponseEntity.ok().build() : ResponseEntity.status(404).build();
-    }
-
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_ORGANIZATIONS')")
     @DeleteMapping("/contracts")
     public ResponseEntity<Void> removeContractClient(@Valid @RequestBody IntermediateRequestDto requestDto) {
 

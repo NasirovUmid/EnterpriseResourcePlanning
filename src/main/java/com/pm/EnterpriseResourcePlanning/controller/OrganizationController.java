@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class OrganizationController {
     }
 
     @PostMapping("/users")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_ORGANIZATIONS')")
     public ResponseEntity<Void> createUserOrganizationLink(@Valid @RequestBody IntermediateRequestDto userOrganizationRequestDto) {
 
         organizationUseCase.createUserOrganizationLink(userOrganizationRequestDto);
@@ -40,11 +42,12 @@ public class OrganizationController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_ORGANIZATIONS')")
     public Page<OrganizationResponseDto> getOrganizationsPage(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size,
             @RequestParam(required = false, defaultValue = "name,asc") String sort,
-            @RequestBody OrganizationFilterDto organizationFilterDto) {
+            @Valid @ModelAttribute OrganizationFilterDto organizationFilterDto) {
 
         return organizationUseCase.getOrganizationsPage(page, size, sort, organizationFilterDto);
     }
@@ -55,19 +58,12 @@ public class OrganizationController {
         return organizationUseCase.getOrganizationById(id);
     }
 
-    @PostMapping("/users-exists")
-    public ResponseEntity<Void> existsUserOrganization(@Valid @RequestBody IntermediateRequestDto userOrganizationRequestDto) {
-
-        boolean doesExists = organizationUseCase.exists(userOrganizationRequestDto);
-
-        return doesExists ? ResponseEntity.ok().build() : ResponseEntity.status(404).build();
-    }
-
     @GetMapping("/users/{id}")
     public List<UserResponseDto> getOrganizationUsers(@PathVariable(name = "id") UUID id) {
         return organizationUseCase.getOrganizationUsers(id);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_ORGANIZATIONS')")
     @DeleteMapping("/user")
     public ResponseEntity<Void> removeUserOrganizationLink(@Valid @RequestBody IntermediateRequestDto userOrganizationRequestDto) {
 
@@ -76,13 +72,14 @@ public class OrganizationController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> updateOrganization(@PathVariable(name = "id") UUID id, OrganizationUpdateRequestDto organizationUpdateRequestDto) {
+    public ResponseEntity<Void> updateOrganization(@PathVariable(name = "id") UUID id, @RequestBody OrganizationUpdateRequestDto organizationUpdateRequestDto) {
 
         organizationUseCase.updateOrganization(id, organizationUpdateRequestDto);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/user-organization/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AUDITOR') or #userId == authentication.principal.id")
     public List<OrganizationResponseDto> getUserOrganization(@PathVariable(name = "id") UUID userId) {
 
         return organizationUseCase.getUserOrganizations(userId);

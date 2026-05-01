@@ -21,21 +21,17 @@ public class SalesDataSourceImpl extends MessageAlertDataSource implements Sales
 
     private final SalesDaoImpl salesDao;
     private final SalesMapper salesMapper;
-    private final ContractDaoImpl contractDao;
 
-    public SalesDataSourceImpl(AlertSystemDao alertSystemDao, SalesDaoImpl salesDao, SalesMapper salesMapper, ContractDaoImpl contractDao) {
+    public SalesDataSourceImpl(AlertSystemDao alertSystemDao, SalesDaoImpl salesDao, SalesMapper salesMapper) {
         super(alertSystemDao, SalesDataSourceImpl.class);
         this.salesDao = salesDao;
         this.salesMapper = salesMapper;
-        this.contractDao = contractDao;
     }
 
     @Override
     public SalesResponseDto saveSales(UUID contractsId, Double totalprice, Instant date, SalesStatus status) {
 
-        ContractsEntity contracts = contractDao.getContractById(contractsId);
-
-        return execute(() -> salesMapper.toDto(salesDao.saveSales(contracts, totalprice, date, status)));
+        return execute(() -> salesMapper.toDto(salesDao.saveSales(contractsId, totalprice, date, status)));
     }
 
     @Override

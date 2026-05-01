@@ -5,6 +5,7 @@ import com.pm.EnterpriseResourcePlanning.entity.ContractsEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
 import com.pm.EnterpriseResourcePlanning.exceptions.NotFoundException;
 import com.pm.EnterpriseResourcePlanning.repository.ContractRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,9 +15,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class ContractDaoImpl implements ContractDao {
 
-    private ContractRepository repository;
+    private final ContractRepository repository;
 
     @Override
     public ContractsEntity saveContract(String name, Double amount, Instant startDate, Instant endDate) {
@@ -24,18 +26,23 @@ public class ContractDaoImpl implements ContractDao {
     }
 
     @Override
-    public Page<ContractsEntity> getContractsPage(Specification<ContractsEntity> specification,Pageable pageable) {
-        return repository.findAll(specification,pageable);
+    public Page<ContractsEntity> getContractsPage(Specification<ContractsEntity> specification, Pageable pageable) {
+        return repository.findAll(specification, pageable);
     }
 
     @Override
     public void updateContracts(Double amount, Instant startDate, Instant enddate, UUID id) {
-         repository.updateContracts(amount, startDate, enddate, id);
+        repository.updateContracts(amount, startDate, enddate, id);
+    }
+
+    @Override
+    public void deleteContract(UUID id) {
+        repository.deleteById(id);
     }
 
     @Override
     public ContractsEntity getContractById(UUID id) {
-        return repository.getContractById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.CONTRACT_NOT_FOUND,id));
+        return repository.findContractsEntityById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.CONTRACT_NOT_FOUND, id));
     }
 
     @Override

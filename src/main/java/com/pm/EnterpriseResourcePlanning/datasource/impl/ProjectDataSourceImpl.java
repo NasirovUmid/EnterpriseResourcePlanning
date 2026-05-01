@@ -43,8 +43,8 @@ public class ProjectDataSourceImpl extends MessageAlertDataSource implements Pro
     }
 
     @Override
-    public ProjectResponseDto saveProject(String name, ProjectStatus projectStatus) {
-        return execute(() -> projectMapper.toDto(projectDao.saveProject(name, projectStatus)));
+    public ProjectResponseDto saveProject(String name) {
+        return execute(() -> projectMapper.toDto(projectDao.saveProject(name)));
     }
 
     @Override

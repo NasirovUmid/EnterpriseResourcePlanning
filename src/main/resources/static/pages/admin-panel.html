@@ -3,200 +3,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Admin Panel</title>
+    <title>ERP Panel</title>
     <link rel="stylesheet" href="/css/auth-pages.css">
 </head>
 <body>
 <div class="page-shell">
     <div class="topbar">
         <div class="brand-block">
-            <h1>Admin Panel</h1>
-            <p>One page for creating projects and organizations. Access restriction can be tightened to admins later in the backend.</p>
+            <h1 id="panelTitle">Panel</h1>
+            <p id="panelSubtitle" style="color:var(--muted);margin:6px 0 0;">Loading your workspace...</p>
         </div>
         <div class="nav-links">
-            <a class="nav-pill" href="/index.html">Home</a>
+            <a class="nav-pill" href="/index.html">← Home</a>
             <a class="nav-pill" href="/pages/profile.html">Profile</a>
             <a class="nav-pill" href="/pages/change-password.html">Change password</a>
-            <a class="nav-pill" href="/pages/login.html">Login</a>
         </div>
     </div>
 
-    <div class="content-grid">
-        <section class="panel">
-            <span class="eyebrow">Create Project</span>
-            <h2 class="section-title">New project</h2>
-            <p class="subtle">Sends `POST /projects` with the current authenticated session.</p>
-
-            <form id="projectForm" class="form-grid">
-                <div class="input-row">
-                    <label for="projectName">Project name</label>
-                    <input id="projectName" type="text" placeholder="ERP Migration" required>
+    <!-- ===== PROJECTS ===== -->
+    <section id="sec-projects" class="section-panel" data-visible-for="ADMIN,MOD_PROJECTS">
+        <div class="section-panel-header">
+            <div>
+                <span class="eyebrow">Projects</span>
+                <h2 class="section-title" style="margin-top:6px;">All Projects</h2>
+            </div>
+            <a class="btn btn-primary" href="/pages/create-project.html" data-visible-for="ADMIN,MOD_PROJECTS">+ New Project</a>
+        </div>
+        <div class="filter-card">
+            <div class="filter-header" onclick="toggleFilter('pf-body','pf-icon')">
+                <span class="filter-header-label">🔍 Filter &amp; Sort</span>
+                <span class="filter-toggle-icon open" id="pf-icon">▼</span>
+            </div>
+            <div class="filter-body" id="pf-body">
+                <div class="filter-grid">
+                    <div class="filter-field"><label>Name</label><input id="pf-name" type="text" placeholder="e.g. ERP Migration"></div>
+                    <div class="filter-field"><label>Status</label>
+                        <select id="pf-status"><option value="">All statuses</option><option>AWAITING</option><option>ACTIVE</option><option>COMPLETED</option><option>CANCELLED</option><option>FAILED</option></select>
+                    </div>
                 </div>
-
-                <div class="input-row">
-                    <label for="projectStatus">Project status</label>
-                    <input id="projectStatus" type="text" placeholder="AWAITING" value="AWAITING" required>
+            </div>
+            <div class="filter-actions">
+                <div class="pager-row">
+                    <label>Sort<select id="pf-sort"><option value="name,asc">Name ↑</option><option value="name,desc">Name ↓</option><option value="status,asc">Status ↑</option></select></label>
+                    <label>Page<input id="pf-page" type="number" value="0" min="0"></label>
+                    <label>Size<input id="pf-size" type="number" value="10" min="1" max="100"></label>
                 </div>
+                <button class="btn btn-primary" id="btnGetProjects">Load ↓</button>
+                <button class="btn btn-secondary" onclick="resetFields(['pf-name','pf-status','pf-sort','pf-page','pf-size'],['','','name,asc','0','10'])">Reset</button>
+            </div>
+        </div>
+        <div id="projectResult" class="result-grid"></div>
+        <div id="projStatus" class="status-box" style="margin-top:10px;display:none;"></div>
+    </section>
 
-                <div class="button-row">
-                    <button class="btn btn-primary" type="submit">Create project</button>
+    <!-- ===== ORGANIZATIONS ===== -->
+    <section id="sec-organizations" class="section-panel" data-visible-for="ADMIN,MOD_ORGANIZATIONS">
+        <div class="section-panel-header">
+            <div>
+                <span class="eyebrow">Organizations</span>
+                <h2 class="section-title" style="margin-top:6px;">All Organizations</h2>
+            </div>
+            <a class="btn btn-primary" href="/pages/create-organization.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS">+ New Organization</a>
+        </div>
+        <div class="filter-card">
+            <div class="filter-header" onclick="toggleFilter('of-body','of-icon')">
+                <span class="filter-header-label">🔍 Filter &amp; Sort</span>
+                <span class="filter-toggle-icon open" id="of-icon">▼</span>
+            </div>
+            <div class="filter-body" id="of-body">
+                <div class="filter-grid">
+                    <div class="filter-field"><label>Name (min 5 chars)</label><input id="of-name" type="text" placeholder="e.g. PM Group"></div>
+                    <div class="filter-field"><label>INN</label><input id="of-inn" type="text" placeholder="123456789"></div>
+                    <div class="filter-field"><label>Address</label><input id="of-address" type="text" placeholder="Tashkent..."></div>
                 </div>
-            </form>
-
-            <div id="projectStatusBox" class="status-box">Ready to create a project.</div>
-            <div id="projectResult" class="collection-list"></div>
-        </section>
-
-        <section class="panel">
-            <span class="eyebrow">Create Organization</span>
-            <h2 class="section-title">New organization</h2>
-            <p class="subtle">Sends `POST /organizations` with the current authenticated session.</p>
-
-            <form id="organizationForm" class="form-grid">
-                <div class="input-row">
-                    <label for="organizationName">Organization name</label>
-                    <input id="organizationName" type="text" placeholder="PM Group" required>
+            </div>
+            <div class="filter-actions">
+                <div class="pager-row">
+                    <label>Sort<select id="of-sort"><option value="name,asc">Name ↑</option><option value="name,desc">Name ↓</option></select></label>
+                    <label>Page<input id="of-page" type="number" value="0" min="0"></label>
+                    <label>Size<input id="of-size" type="number" value="10" min="1" max="100"></label>
                 </div>
+                <button class="btn btn-primary" id="btnGetOrgs">Load ↓</button>
+                <button class="btn btn-secondary" onclick="resetFields(['of-name','of-inn','of-address','of-sort','of-page','of-size'],['','','','name,asc','0','10'])">Reset</button>
+            </div>
+        </div>
+        <div id="orgResult" class="result-grid"></div>
+        <div id="orgStatus" class="status-box" style="margin-top:10px;display:none;"></div>
+    </section>
 
-                <div class="input-row">
-                    <label for="organizationInn">INN</label>
-                    <input id="organizationInn" type="text" placeholder="123456789" required>
+    <!-- ===== USERS ===== -->
+    <section id="sec-users" class="section-panel" data-visible-for="ADMIN,MOD_USERS">
+        <div class="section-panel-header">
+            <div>
+                <span class="eyebrow">Users</span>
+                <h2 class="section-title" style="margin-top:6px;">All Users</h2>
+            </div>
+            <a class="btn btn-primary" href="/pages/create-user.html" data-visible-for="ADMIN,MOD_USERS">+ New User</a>
+        </div>
+        <div class="filter-card">
+            <div class="filter-header" onclick="toggleFilter('uf-body','uf-icon')">
+                <span class="filter-header-label">🔍 Filter &amp; Sort</span>
+                <span class="filter-toggle-icon open" id="uf-icon">▼</span>
+            </div>
+            <div class="filter-body" id="uf-body">
+                <div class="filter-grid">
+                    <div class="filter-field"><label>Full name (min 5)</label><input id="uf-name" type="text" placeholder="John Doe"></div>
+                    <div class="filter-field"><label>Email</label><input id="uf-email" type="email" placeholder="john@example.com"></div>
+                    <div class="filter-field"><label>Phone</label><input id="uf-phone" type="text" placeholder="+998..."></div>
+                    <div class="filter-field"><label>Status</label>
+                        <select id="uf-status"><option value="">All</option><option value="ACTIVE">ACTIVE</option><option value="DEACTIVATED">DEACTIVATED</option></select>
+                    </div>
                 </div>
-
-                <div class="input-row">
-                    <label for="organizationAddress">Address</label>
-                    <input id="organizationAddress" type="text" placeholder="Tashkent, Yunusabad" required>
+            </div>
+            <div class="filter-actions">
+                <div class="pager-row">
+                    <label>Sort<select id="uf-sort"><option value="fullName,asc">Name ↑</option><option value="fullName,desc">Name ↓</option></select></label>
+                    <label>Page<input id="uf-page" type="number" value="0" min="0"></label>
+                    <label>Size<input id="uf-size" type="number" value="20" min="1" max="100"></label>
                 </div>
+                <button class="btn btn-primary" id="btnGetUsers">Load ↓</button>
+                <button class="btn btn-secondary" onclick="resetFields(['uf-name','uf-email','uf-phone','uf-status','uf-sort','uf-page','uf-size'],['','','','','fullName,asc','0','20'])">Reset</button>
+            </div>
+        </div>
+        <div id="userResult" class="result-grid"></div>
+        <div id="userStatus" class="status-box" style="margin-top:10px;display:none;"></div>
+    </section>
 
-                <div class="button-row">
-                    <button class="btn btn-primary" type="submit">Create organization</button>
+    <!-- ===== PRODUCTS ===== -->
+    <section id="sec-products" class="section-panel" data-visible-for="ADMIN,MOD_PRODUCTS">
+        <div class="section-panel-header">
+            <div>
+                <span class="eyebrow">Products</span>
+                <h2 class="section-title" style="margin-top:6px;">All Products</h2>
+            </div>
+            <a class="btn btn-primary" href="/pages/create-product.html" data-visible-for="ADMIN,MOD_PRODUCTS">+ New Product</a>
+        </div>
+        <div class="filter-card">
+            <div class="filter-header" onclick="toggleFilter('prf-body','prf-icon')">
+                <span class="filter-header-label">🔍 Filter &amp; Sort</span>
+                <span class="filter-toggle-icon open" id="prf-icon">▼</span>
+            </div>
+            <div class="filter-body" id="prf-body">
+                <div class="filter-grid">
+                    <div class="filter-field"><label>Name (min 5)</label><input id="prf-name" type="text" placeholder="Premium..."></div>
+                    <div class="filter-field"><label>Price from</label><input id="prf-pgt" type="number" step="0.01" placeholder="0.00"></div>
+                    <div class="filter-field"><label>Price to</label><input id="prf-plt" type="number" step="0.01" placeholder="9999.99"></div>
+                    <div class="filter-field"><label>Unit from</label><input id="prf-ugt" type="number" placeholder="1"></div>
+                    <div class="filter-field"><label>Unit to</label><input id="prf-ult" type="number" placeholder="100"></div>
+                    <div class="filter-field"><label>Status</label>
+                        <select id="prf-status"><option value="">All</option><option>ACTIVE</option><option>DRAFT</option><option>OUT_OF_STOCK</option><option>ARCHIVED</option></select>
+                    </div>
                 </div>
-            </form>
+            </div>
+            <div class="filter-actions">
+                <div class="pager-row">
+                    <label>Sort<select id="prf-sort"><option value="name,asc">Name ↑</option><option value="name,desc">Name ↓</option><option value="price,asc">Price ↑</option><option value="price,desc">Price ↓</option></select></label>
+                    <label>Page<input id="prf-page" type="number" value="0" min="0"></label>
+                    <label>Size<input id="prf-size" type="number" value="20" min="1" max="100"></label>
+                </div>
+                <button class="btn btn-primary" id="btnGetProducts">Load ↓</button>
+                <button class="btn btn-secondary" onclick="resetFields(['prf-name','prf-pgt','prf-plt','prf-ugt','prf-ult','prf-status','prf-sort','prf-page','prf-size'],['','','','','','','name,asc','0','20'])">Reset</button>
+            </div>
+        </div>
+        <div id="productResult" class="result-grid"></div>
+        <div id="productStatus" class="status-box" style="margin-top:10px;display:none;"></div>
+    </section>
 
-            <div id="organizationStatusBox" class="status-box">Ready to create an organization.</div>
-            <div id="organizationResult" class="collection-list"></div>
-        </section>
-    </div>
+    <!-- ===== CONTRACTS ===== -->
+    <section id="sec-contracts" class="section-panel" data-visible-for="ADMIN,MOD_CONTRACTS">
+        <div class="section-panel-header">
+            <div>
+                <span class="eyebrow">Contracts</span>
+                <h2 class="section-title" style="margin-top:6px;">All Contracts</h2>
+            </div>
+            <a class="btn btn-primary" href="/pages/create-contract.html" data-visible-for="ADMIN,MOD_CONTRACTS">+ New Contract</a>
+        </div>
+        <div class="filter-card">
+            <div class="filter-header" onclick="toggleFilter('cf-body','cf-icon')">
+                <span class="filter-header-label">🔍 Filter &amp; Sort</span>
+                <span class="filter-toggle-icon open" id="cf-icon">▼</span>
+            </div>
+            <div class="filter-body" id="cf-body">
+                <div class="filter-grid">
+                    <div class="filter-field"><label>Contract No.</label><input id="cf-num" type="text" placeholder="CTR-2024-001"></div>
+                    <div class="filter-field"><label>Amount from</label><input id="cf-agt" type="number" step="0.01" placeholder="0.00"></div>
+                    <div class="filter-field"><label>Amount to</label><input id="cf-alt" type="number" step="0.01" placeholder="99999.99"></div>
+                    <div class="filter-field"><label>Start date from</label><input id="cf-sf" type="datetime-local"></div>
+                    <div class="filter-field"><label>Start date to</label><input id="cf-st" type="datetime-local"></div>
+                    <div class="filter-field"><label>End date from</label><input id="cf-ef" type="datetime-local"></div>
+                    <div class="filter-field"><label>End date to</label><input id="cf-et" type="datetime-local"></div>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <div class="pager-row">
+                    <label>Sort<select id="cf-sort"><option value="startDate,desc">Start ↓</option><option value="startDate,asc">Start ↑</option><option value="amount,asc">Amount ↑</option><option value="amount,desc">Amount ↓</option></select></label>
+                    <label>Page<input id="cf-page" type="number" value="0" min="0"></label>
+                    <label>Size<input id="cf-size" type="number" value="10" min="1" max="100"></label>
+                </div>
+                <button class="btn btn-primary" id="btnGetContracts">Load ↓</button>
+                <button class="btn btn-secondary" onclick="resetFields(['cf-num','cf-agt','cf-alt','cf-sf','cf-st','cf-ef','cf-et','cf-sort','cf-page','cf-size'],['','','','','','','','startDate,desc','0','10'])">Reset</button>
+            </div>
+        </div>
+        <div id="contractResult" class="result-grid"></div>
+        <div id="contractStatus" class="status-box" style="margin-top:10px;display:none;"></div>
+    </section>
 
-    <section class="card" style="margin-top: 22px;">
-        <span class="eyebrow">Session Details</span>
-        <h2 class="section-title">Stored auth context</h2>
+    <section class="card">
+        <span class="eyebrow">Session</span>
         <div class="stats-grid">
-            <div class="stat">
-                <strong>Email</strong>
-                <span id="session-email">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>User ID</strong>
-                <span id="session-userId">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>Token Type</strong>
-                <span id="session-tokenType">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>Expires At</strong>
-                <span id="session-expiresAt">Not available</span>
-            </div>
+            <div class="stat"><strong>Email</strong><span id="session-email">—</span></div>
+            <div class="stat"><strong>User ID</strong><span id="session-userId">—</span></div>
+            <div class="stat"><strong>Roles</strong><span id="session-roles">—</span></div>
+            <div class="stat"><strong>Expires</strong><span id="session-expiresAt">—</span></div>
         </div>
     </section>
 </div>
 
 <script src="/js/auth-pages.js"></script>
 <script>
-    const {
-        authorizedFetch,
-        fillSessionSummary,
-        formatError,
-        getApiBase,
-        getSession,
-        readJson,
-        setStatus,
-        redirectToLogin
-    } = window.erpAuth;
+const { authorizedFetch, fillSessionSummary, formatError, getApiBase, getSession,
+        guardPage, initializeRoleView, readJson, redirectToLogin, setStatus } = window.erpAuth;
 
-    function renderSingleResult(targetId, title, lines) {
-        const container = document.getElementById(targetId);
-        container.innerHTML = `
-            <article class="collection-item">
-                <h3>${title}</h3>
-                ${lines.map(function (line) { return `<p>${line}</p>`; }).join("")}
-            </article>
-        `;
-    }
+const ROLE_META = {
+    ADMIN:           { title: 'Admin Panel',       sub: 'Full access to all system entities.' },
+    MOD_PROJECTS:    { title: 'Projects',           sub: 'Browse and manage all projects across the platform.' },
+    MOD_ORGANIZATIONS:{ title: 'Organizations',     sub: 'Browse and manage all registered organizations.' },
+    MOD_USERS:       { title: 'User Management',    sub: 'Browse and manage all system users.' },
+    MOD_PRODUCTS:    { title: 'Products',           sub: 'Browse and manage the product catalogue.' },
+    MOD_CONTRACTS:   { title: 'Contracts',          sub: 'Browse and manage all active contracts.' }
+};
+const ROLE_ORDER = ['ADMIN','MOD_PROJECTS','MOD_ORGANIZATIONS','MOD_USERS','MOD_PRODUCTS','MOD_CONTRACTS'];
 
-    document.getElementById("projectForm").addEventListener("submit", async function (event) {
-        event.preventDefault();
-        setStatus("projectStatusBox", "Creating project...", "");
+function toggleFilter(bodyId, iconId) {
+    const body = document.getElementById(bodyId);
+    const icon = document.getElementById(iconId);
+    body.classList.toggle('collapsed');
+    icon.classList.toggle('open');
+}
 
-        try {
-            const response = await authorizedFetch(getApiBase() + "/projects", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name: document.getElementById("projectName").value.trim(),
-                    status: document.getElementById("projectStatus").value.trim()
-                })
-            });
+function resetFields(ids, vals) {
+    ids.forEach(function(id, i) {
+        const el = document.getElementById(id);
+        if (el) el.value = vals[i] || '';
+    });
+}
 
-            const payload = await readJson(response);
-            if (!response.ok) {
-                throw payload;
-            }
+function g(id) { return (document.getElementById(id)||{}).value||''; }
 
-            document.getElementById("projectForm").reset();
-            document.getElementById("projectStatus").value = "AWAITING";
-            renderSingleResult("projectResult", payload.name || "Project created", [
-                "ID: " + (payload.id || "-"),
-                "Status: " + (payload.status || "-")
-            ]);
-            setStatus("projectStatusBox", "Project created successfully.", "success");
-        } catch (error) {
-            setStatus("projectStatusBox", formatError(error), "error");
+function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function(ch) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];
+    });
+}
+
+function appendQuery(url, params) {
+    Object.keys(params || {}).forEach(function(key) {
+        const value = params[key];
+        if (value !== undefined && value !== null && value !== '') {
+            url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
         }
     });
+    return url;
+}
 
-    document.getElementById("organizationForm").addEventListener("submit", async function (event) {
-        event.preventDefault();
-        setStatus("organizationStatusBox", "Creating organization...", "");
+function showStatus(id, msg, type) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = 'block';
+    el.textContent = msg;
+    el.className = 'status-box' + (type ? ' ' + type : '');
+}
 
-        try {
-            const response = await authorizedFetch(getApiBase() + "/organizations", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name: document.getElementById("organizationName").value.trim(),
-                    inn: document.getElementById("organizationInn").value.trim(),
-                    address: document.getElementById("organizationAddress").value.trim()
-                })
-            });
-
-            const payload = await readJson(response);
-            if (!response.ok) {
-                throw payload;
-            }
-
-            document.getElementById("organizationForm").reset();
-            renderSingleResult("organizationResult", payload.name || "Organization created", [
-                "ID: " + (payload.id || "-"),
-                "INN: " + (payload.inn || "-"),
-                "Address: " + (payload.address || "-")
-            ]);
-            setStatus("organizationStatusBox", "Organization created successfully.", "success");
-        } catch (error) {
-            setStatus("organizationStatusBox", formatError(error), "error");
-        }
-    });
-
-    fillSessionSummary("session");
-
-    if (!getSession().accessToken && !getSession().refreshToken) {
-        redirectToLogin();
+function renderCards(containerId, list, cfg) {
+    const el = document.getElementById(containerId);
+    if (!list || list.length === 0) {
+        el.innerHTML = '<div class="empty-state">No items found. Try adjusting the filters.</div>';
+        return;
     }
+    el.innerHTML = list.map(function(item) {
+        const title = item[cfg.title] || item.id || 'Item';
+        const lines = cfg.fields.map(function(f) {
+            return item[f] != null ? '<p><strong>' + escapeHtml(f) + ':</strong> ' + escapeHtml(item[f]) + '</p>' : '';
+        }).join('');
+        const tags = (cfg.tags||[]).map(function(t) {
+            return item[t] != null ? '<span class="tag">' + escapeHtml(item[t]) + '</span>' : '';
+        }).join('');
+        const href = item.id && cfg.type ? '/pages/entity-detail.html?type=' + encodeURIComponent(cfg.type) + '&id=' + encodeURIComponent(item.id) : '#';
+        return '<a class="result-card" href="' + href + '"><h3>' + escapeHtml(title) + '</h3>' + lines +
+               (tags ? '<div class="meta">' + tags + '</div>' : '') + '</a>';
+    }).join('');
+}
+
+async function load(url, body, statusId, resultId, cfg) {
+    showStatus(statusId, 'Loading…', '');
+    try {
+        const opts = { method: 'GET' };
+        const res = await authorizedFetch(getApiBase() + url, opts);
+        const data = await readJson(res);
+        if (!res.ok) throw data;
+        const list = Array.isArray(data) ? data : (data && Array.isArray(data.content) ? data.content : [data]);
+        renderCards(resultId, list, cfg);
+        showStatus(statusId, '✓ ' + list.length + ' item(s) loaded.', 'success');
+    } catch(e) { showStatus(statusId, formatError(e), 'error'); }
+}
+
+document.getElementById('btnGetProjects').addEventListener('click', function() {
+    const n=g('pf-name'), s=g('pf-status'), sort=g('pf-sort'), pg=g('pf-page')||0, sz=g('pf-size')||10;
+    let url = '/projects?page='+pg+'&size='+sz+'&sort='+encodeURIComponent(sort);
+    if (n) url += '&name='+encodeURIComponent(n);
+    if (s) url += '&status='+encodeURIComponent(s);
+    load(url, {}, 'projStatus', 'projectResult', {type:'project', title:'name', fields:['id'], tags:['status']});
+});
+
+document.getElementById('btnGetOrgs').addEventListener('click', function() {
+    const sort=g('of-sort'), pg=g('of-page')||0, sz=g('of-size')||10;
+    let url = '/organizations?page='+pg+'&size='+sz+'&sort='+encodeURIComponent(sort);
+    const n=g('of-name'); if(n&&n.length>=5) url = appendQuery(url, {name:n});
+    const inn=g('of-inn'); if(inn) url = appendQuery(url, {inn:inn});
+    const addr=g('of-address'); if(addr) url = appendQuery(url, {address:addr});
+    load(url, {}, 'orgStatus', 'orgResult', {type:'organization', title:'name', fields:['id','inn','address']});
+});
+
+document.getElementById('btnGetUsers').addEventListener('click', function() {
+    const sort=g('uf-sort'), pg=g('uf-page')||0, sz=g('uf-size')||20;
+    let url = '/users?page='+pg+'&size='+sz+'&sort='+encodeURIComponent(sort);
+    const fn=g('uf-name'); if(fn&&fn.length>=5) url = appendQuery(url, {fullName:fn});
+    const em=g('uf-email'); if(em) url = appendQuery(url, {username:em});
+    const ph=g('uf-phone'); if(ph) url = appendQuery(url, {phoneNumber:ph});
+    const st=g('uf-status'); if(st) url = appendQuery(url, {userStatus:st});
+    load(url, {}, 'userStatus', 'userResult', {type:'user', title:'fullName', fields:['id','username','phone'], tags:['status']});
+});
+
+document.getElementById('btnGetProducts').addEventListener('click', function() {
+    const sort=g('prf-sort'), pg=g('prf-page')||0, sz=g('prf-size')||20;
+    let url = '/products?page='+pg+'&size='+sz+'&sort='+encodeURIComponent(sort);
+    const n=g('prf-name'); if(n&&n.length>=5) url = appendQuery(url, {name:n});
+    const pgt=g('prf-pgt'); if(pgt) url = appendQuery(url, {priceGreater:pgt});
+    const plt=g('prf-plt'); if(plt) url = appendQuery(url, {priceLower:plt});
+    const ugt=g('prf-ugt'); if(ugt) url = appendQuery(url, {unitGreater:ugt});
+    const ult=g('prf-ult'); if(ult) url = appendQuery(url, {unitLower:ult});
+    const st=g('prf-status'); if(st) url = appendQuery(url, {status:st});
+    load(url, {}, 'productStatus', 'productResult', {type:'product', title:'name', fields:['id','price'], tags:['status']});
+});
+
+document.getElementById('btnGetContracts').addEventListener('click', function() {
+    const sort=g('cf-sort'), pg=g('cf-page')||0, sz=g('cf-size')||10;
+    let url = '/contracts?page='+pg+'&size='+sz+'&sort='+encodeURIComponent(sort);
+    const num=g('cf-num'); if(num) url = appendQuery(url, {contractNumber:num});
+    const agt=g('cf-agt'); if(agt) url = appendQuery(url, {amountGreater:agt});
+    const alt=g('cf-alt'); if(alt) url = appendQuery(url, {amountLower:alt});
+    const sf=g('cf-sf'); if(sf) url = appendQuery(url, {startDateFrom:new Date(sf).toISOString()});
+    const st2=g('cf-st'); if(st2) url = appendQuery(url, {startDateTo:new Date(st2).toISOString()});
+    const ef=g('cf-ef'); if(ef) url = appendQuery(url, {endDateFrom:new Date(ef).toISOString()});
+    const et=g('cf-et'); if(et) url = appendQuery(url, {endDateTo:new Date(et).toISOString()});
+    load(url, {}, 'contractStatus', 'contractResult', {type:'contract', title:'contractNumber', fields:['id','price','startDate','endDate']});
+});
+
+if (!getSession().accessToken && !getSession().refreshToken) {
+    redirectToLogin();
+} else {
+    guardPage(['ADMIN','MOD_ORGANIZATIONS','MOD_PROJECTS','MOD_USERS','MOD_PRODUCTS','MOD_CONTRACTS'])
+        .then(function(roles) {
+            fillSessionSummary('session');
+            const primary = ROLE_ORDER.find(function(r){ return roles.includes(r); }) || 'ADMIN';
+            const meta = ROLE_META[primary] || ROLE_META.ADMIN;
+            document.getElementById('panelTitle').textContent = meta.title;
+            document.getElementById('panelSubtitle').textContent = meta.sub;
+            document.title = meta.title + ' — ERP';
+            // Scroll to anchor if present
+            if (window.location.hash) {
+                const rawHash = window.location.hash.slice(1);
+                const el = document.getElementById(rawHash) || document.getElementById('sec-' + rawHash);
+                if (el) setTimeout(function(){ el.scrollIntoView({behavior:'smooth'}); }, 300);
+            }
+        })
+        .catch(console.error);
+}
 </script>
 </body>
 </html>

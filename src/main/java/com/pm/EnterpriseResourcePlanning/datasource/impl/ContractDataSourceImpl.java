@@ -43,6 +43,11 @@ public class ContractDataSourceImpl extends MessageAlertDataSource implements Co
     }
 
     @Override
+    public void deleteContract(UUID id) {
+        execute(() -> contractDao.deleteContract(id));
+    }
+
+    @Override
     public ContractResponseDto getContractById(UUID id) {
         return execute(() -> contractMapper.toDto(contractDao.getContractById(id)));
     }

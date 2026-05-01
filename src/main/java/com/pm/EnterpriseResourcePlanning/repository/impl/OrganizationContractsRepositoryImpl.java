@@ -8,6 +8,7 @@ import org.jooq.Field;
 import org.jooq.Table;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ import static org.jooq.impl.DSL.*;
 public class OrganizationContractsRepositoryImpl implements OrganizationContractsRepository {
 
     private final DSLContext dsl;
-    private final Table<?> tableName = table("organization_contracts");
+    private final Table<?> tableName = table("organization_contract");
     private final Field<UUID> organizationField = field("organization_id", UUID.class);
     private final Field<UUID> contractField = field("contract_id", UUID.class);
     private final Table<?> cTable = table("contracts");
@@ -52,7 +53,13 @@ public class OrganizationContractsRepositoryImpl implements OrganizationContract
         return dsl.select(cTable.fields())
                 .from(cTable)
                 .join(tableName).on(field("contracts.id").eq(contractField))
-                .where(tableName.field(organizationField).eq(organizationId))
-                .fetchInto(ContractsEntity.class);
+                .where(organizationField.eq(organizationId))
+                .fetch(record -> ContractsEntity.builder()
+                        .id(record.get(field("id", UUID.class)))
+                        .contractNumber(record.get("contract_number", String.class))
+                        .amount(record.get(field("amount", Double.class)))
+                        .startDate(record.get(field("start_date", Instant.class)))
+                        .endDate(record.get(field("end_date", Instant.class)))
+                        .build());
     }
 }

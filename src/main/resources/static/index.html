@@ -3,39 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Auth Pages</title>
+    <title>ERP System</title>
     <link rel="stylesheet" href="/css/auth-pages.css">
 </head>
 <body>
 <div class="page-shell">
     <div class="topbar">
         <div class="brand-block">
-            <h1>ERP Auth Pages</h1>
-            <p>Separate front-end pages for login, registration, and profile management.</p>
+            <h1>Enterprise Resource Planning</h1>
+            <p>Manage your projects, organizations, users, products and contracts in one place.</p>
+        </div>
+        <div class="nav-links" id="topbar-nav">
+            <a class="nav-pill" href="/pages/login.html" id="nav-login">Login</a>
+            <a class="nav-pill" href="/pages/register.html" id="nav-register">Register</a>
+            <a class="nav-pill" href="/pages/profile.html" id="nav-profile" hidden>Profile</a>
+            <a class="nav-pill" href="/pages/change-password.html" id="nav-change-pwd" hidden>Change password</a>
         </div>
     </div>
 
     <div class="hero-grid">
         <section class="panel highlight">
             <span class="eyebrow">Enterprise Resource Planning</span>
-            <h2 class="title">Focused auth UI with separate pages and shared session logic.</h2>
+            <h2 class="title">Role-driven management platform.</h2>
             <p class="subtle">
-                Choose the page you need and continue with the existing backend endpoints.
+                Each role unlocks specific capabilities. Administrators control everything;
+                moderators manage their assigned domain; regular users track their own workspace.
             </p>
         </section>
 
-        <section class="panel">
-            <span class="eyebrow">Open Pages</span>
-            <h2 class="section-title">Navigation</h2>
-            <div class="button-row">
-                <a class="btn btn-primary" href="/pages/login.html">Login page</a>
-                <a class="btn btn-secondary" href="/pages/register.html">Register page</a>
-                <a class="btn btn-secondary" href="/pages/profile.html">Profile page</a>
-                <a class="btn btn-secondary" href="/pages/change-password.html">Change password page</a>
-                <a class="btn btn-secondary" href="/pages/admin-panel.html">Admin panel</a>
+        <!-- ADMIN navigation panel -->
+        <section class="panel" id="admin-nav-panel" hidden>
+            <span class="eyebrow">Admin</span>
+            <h2 class="section-title">Administration</h2>
+            <p class="subtle">Full access to all entities and operations.</p>
+            <div class="dashboard-links" style="margin-top:18px;">
+                <a class="action-card" href="/pages/admin-panel.html#users">
+                    <strong>Users</strong>
+                    <span>Browse, create and manage all system users</span>
+                </a>
+                <a class="action-card" href="/pages/admin-panel.html#projects">
+                    <strong>Projects</strong>
+                    <span>Create and oversee all projects across the platform</span>
+                </a>
+                <a class="action-card" href="/pages/admin-panel.html#organizations">
+                    <strong>Organizations</strong>
+                    <span>Manage all registered organizations</span>
+                </a>
+                <a class="action-card" href="/pages/admin-panel.html#products">
+                    <strong>Products</strong>
+                    <span>View and manage the product catalogue</span>
+                </a>
+                <a class="action-card" href="/pages/admin-panel.html#contracts">
+                    <strong>Contracts</strong>
+                    <span>Track and manage all contracts</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- MOD_PROJECTS navigation panel -->
+        <section class="panel" id="mod-projects-nav-panel" hidden>
+            <span class="eyebrow">Projects Moderator</span>
+            <h2 class="section-title">Project Management</h2>
+            <p class="subtle">Browse all projects and manage project records.</p>
+            <div class="dashboard-links" style="margin-top:18px;">
+                <a class="action-card" href="/pages/admin-panel.html#projects">
+                    <strong>All Projects</strong>
+                    <span>View and filter all projects with sorting & paging</span>
+                </a>
+                <a class="action-card" href="/pages/create-project.html">
+                    <strong>+ New Project</strong>
+                    <span>Create a new project record</span>
+                </a>
+                <a class="action-card" href="/pages/user-projects.html">
+                    <strong>My Projects</strong>
+                    <span>Projects assigned to your account</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- MOD_ORGANIZATIONS navigation panel -->
+        <section class="panel" id="mod-organizations-nav-panel" hidden>
+            <span class="eyebrow">Organizations Moderator</span>
+            <h2 class="section-title">Organization Management</h2>
+            <p class="subtle">Browse all organizations; view only your own projects.</p>
+            <div class="dashboard-links" style="margin-top:18px;">
+                <a class="action-card" href="/pages/admin-panel.html#organizations">
+                    <strong>All Organizations</strong>
+                    <span>View and filter all organizations</span>
+                </a>
+                <a class="action-card" href="/pages/create-organization.html">
+                    <strong>+ New Organization</strong>
+                    <span>Create a new organization record</span>
+                </a>
+                <a class="action-card" href="/pages/user-projects.html">
+                    <strong>My Projects</strong>
+                    <span>Projects you are assigned to</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- MOD_USERS navigation panel -->
+        <section class="panel" id="mod-users-nav-panel" hidden>
+            <span class="eyebrow">Users Moderator</span>
+            <h2 class="section-title">User Management</h2>
+            <p class="subtle">Manage all users; view your own organizations and projects.</p>
+            <div class="dashboard-links" style="margin-top:18px;">
+                <a class="action-card" href="/pages/admin-panel.html#users">
+                    <strong>All Users</strong>
+                    <span>Browse, filter and manage system users</span>
+                </a>
+                <a class="action-card" href="/pages/create-user.html">
+                    <strong>+ New User</strong>
+                    <span>Create a new user account</span>
+                </a>
+                <a class="action-card" href="/pages/user-organizations.html">
+                    <strong>My Organizations</strong>
+                    <span>Organizations linked to your account</span>
+                </a>
+                <a class="action-card" href="/pages/user-projects.html">
+                    <strong>My Projects</strong>
+                    <span>Projects assigned to your account</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- MOD_PRODUCTS navigation panel -->
+        <section class="panel" id="mod-products-nav-panel" hidden>
+            <span class="eyebrow">Products Moderator</span>
+            <h2 class="section-title">Product Management</h2>
+            <p class="subtle">Browse and manage the product catalogue.</p>
+            <div class="dashboard-links" style="margin-top:18px;">
+                <a class="action-card" href="/pages/admin-panel.html#products">
+                    <strong>All Products</strong>
+                    <span>View, filter and manage products</span>
+                </a>
+                <a class="action-card" href="/pages/create-product.html">
+                    <strong>+ New Product</strong>
+                    <span>Add a product to the catalogue</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- MOD_CONTRACTS navigation panel -->
+        <section class="panel" id="mod-contracts-nav-panel" hidden>
+            <span class="eyebrow">Contracts Moderator</span>
+            <h2 class="section-title">Contract Management</h2>
+            <p class="subtle">Browse and manage all contracts.</p>
+            <div class="dashboard-links" style="margin-top:18px;">
+                <a class="action-card" href="/pages/admin-panel.html#contracts">
+                    <strong>All Contracts</strong>
+                    <span>View, filter and manage contracts</span>
+                </a>
+                <a class="action-card" href="/pages/create-contract.html">
+                    <strong>+ New Contract</strong>
+                    <span>Register a new contract</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Regular USER navigation panel (hidden by default, shown only for USER role) -->
+        <section class="panel" id="user-nav-panel" hidden>
+            <span class="eyebrow">My Workspace</span>
+            <h2 class="section-title">Your pages</h2>
+            <div class="dashboard-links" style="margin-top:18px;">
+                <a class="action-card" href="/pages/user-projects.html">
+                    <strong>My Projects</strong>
+                    <span>Projects assigned to your account</span>
+                </a>
+                <a class="action-card" href="/pages/user-organizations.html">
+                    <strong>My Organizations</strong>
+                    <span>Organizations linked to your account</span>
+                </a>
             </div>
         </section>
     </div>
 </div>
+
+<script src="/js/auth-pages.js"></script>
+<script>
+    const { getSession, getStoredRoles, initializeRoleView, ensureRolesLoaded } = window.erpAuth;
+
+    const session = getSession();
+
+    if (session.accessToken || session.refreshToken) {
+        // Logged in — show profile & change password, hide login/register
+        document.getElementById('nav-login').hidden = true;
+        document.getElementById('nav-register').hidden = true;
+        document.getElementById('nav-profile').hidden = false;
+        document.getElementById('nav-change-pwd').hidden = false;
+
+        ensureRolesLoaded().then(function(roles) {
+            const isAdmin      = roles.includes('ADMIN');
+            const isModProj    = roles.includes('MOD_PROJECTS');
+            const isModOrg     = roles.includes('MOD_ORGANIZATIONS');
+            const isModUsers   = roles.includes('MOD_USERS');
+            const isModProd    = roles.includes('MOD_PRODUCTS');
+            const isModContr   = roles.includes('MOD_CONTRACTS');
+            const isMod        = isModProj || isModOrg || isModUsers || isModProd || isModContr;
+
+            if (isAdmin) {
+                document.getElementById('admin-nav-panel').hidden = false;
+            } else if (isModProj) {
+                document.getElementById('mod-projects-nav-panel').hidden = false;
+            } else if (isModOrg) {
+                document.getElementById('mod-organizations-nav-panel').hidden = false;
+            } else if (isModUsers) {
+                document.getElementById('mod-users-nav-panel').hidden = false;
+            } else if (isModProd) {
+                document.getElementById('mod-products-nav-panel').hidden = false;
+            } else if (isModContr) {
+                document.getElementById('mod-contracts-nav-panel').hidden = false;
+            } else {
+                // Plain USER — show only user workspace panel
+                document.getElementById('user-nav-panel').hidden = false;
+            }
+        }).catch(console.error);
+    }
+</script>
 </body>
 </html>

@@ -33,8 +33,8 @@ public class ProjectDaoImpl implements ProjectDao {
     }
 
     @Override
-    public ProjectEntity saveProject(String name, ProjectStatus projectStatus) {
-        return repository.saveProject(name, projectStatus).orElseThrow(RuntimeException::new);
+    public ProjectEntity saveProject(String name) {
+        return repository.save(name).orElseThrow(RuntimeException::new);
     }
 
     @Override

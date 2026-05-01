@@ -15,4 +15,7 @@ public interface UserRoleDataSource {
 
     List<RoleResponseDto> findRolesByUserId(UUID userId);
 
+    List<String> findAllAuthoritiesByUserId(UUID userId);
+
+
 }

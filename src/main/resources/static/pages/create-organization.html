@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Organization — ERP</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>Create Organization</h1>
+            <p style="color:var(--muted);margin:6px 0 0;">Register a new organization in the system.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/pages/admin-panel.html#organizations">← Back to Organizations</a>
+            <a class="nav-pill" href="/index.html">Home</a>
+        </div>
+    </div>
+    <div style="max-width:520px;margin:0 auto;">
+        <section class="panel">
+            <span class="eyebrow">New Organization</span>
+            <h2 class="section-title" style="margin-top:10px;">Organization details</h2>
+            <form id="orgForm" class="form-grid" style="margin-top:18px;">
+                <div class="input-row"><label for="orgName">Organization name</label><input id="orgName" type="text" placeholder="PM Group" required></div>
+                <div class="input-row"><label for="orgInn">INN</label><input id="orgInn" type="text" placeholder="123456789" required></div>
+                <div class="input-row"><label for="orgAddress">Address</label><input id="orgAddress" type="text" placeholder="Tashkent, Yunusabad" required></div>
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Create organization</button>
+                    <a class="btn btn-secondary" href="/pages/admin-panel.html#organizations">Cancel</a>
+                </div>
+            </form>
+            <div id="formStatus" class="status-box" style="margin-top:14px;"></div>
+        </section>
+    </div>
+</div>
+<script src="/js/auth-pages.js"></script>
+<script>
+    const { authorizedFetch, formatError, getApiBase, getSession, guardPage, readJson, redirectToLogin, setStatus } = window.erpAuth;
+    if (!getSession().accessToken && !getSession().refreshToken) { redirectToLogin(); }
+    else {
+        guardPage(['ADMIN','MOD_ORGANIZATIONS']).catch(console.error);
+        document.getElementById('orgForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); setStatus('formStatus','Creating…','');
+            try {
+                const res = await authorizedFetch(getApiBase()+'/organizations',{method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({name:document.getElementById('orgName').value.trim(),inn:document.getElementById('orgInn').value.trim(),address:document.getElementById('orgAddress').value.trim()})});
+                const d = await readJson(res); if(!res.ok) throw d;
+                setStatus('formStatus','✓ Organization "'+d.name+'" created!','success');
+                e.target.reset();
+            } catch(err){ setStatus('formStatus',formatError(err),'error'); }
+        });
+    }
+</script>
+</body>
+</html>

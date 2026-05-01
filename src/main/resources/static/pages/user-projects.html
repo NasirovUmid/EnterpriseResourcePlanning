@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP User Projects</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>My Projects</h1>
+            <p>Your personal project list is loaded from the current signed-in user.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/index.html">Home</a>
+            <a class="nav-pill" href="/pages/profile.html">Profile</a>
+            <a class="nav-pill" href="/pages/change-password.html">Change password</a>
+            <a class="nav-pill" href="/pages/project-workspace.html" data-visible-for="MOD_PROJECTS" data-hidden-for="ADMIN">Project workspace</a>
+            <a class="nav-pill" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS">Admin panel</a>
+        </div>
+    </div>
+
+    <section class="panel">
+        <span class="eyebrow">Projects</span>
+        <h2 class="section-title">Projects connected to your account</h2>
+        <p class="subtle">This page calls `GET /projects/users-projects/{id}` with auto-refresh in the background.</p>
+
+        <div id="projectsStatus" class="status-box">Loading your projects...</div>
+        <div id="projectsList" class="collection-list">
+            <div class="empty-state">Projects will appear here.</div>
+        </div>
+    </section>
+
+    <section class="card" style="margin-top: 22px;">
+        <span class="eyebrow">Session Details</span>
+        <h2 class="section-title">Stored auth context</h2>
+        <div class="stats-grid">
+            <div class="stat">
+                <strong>Email</strong>
+                <span id="session-email">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>User ID</strong>
+                <span id="session-userId">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>Roles</strong>
+                <span id="session-roles">Not loaded</span>
+            </div>
+            <div class="stat">
+                <strong>Expires At</strong>
+                <span id="session-expiresAt">Not available</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="/js/auth-pages.js"></script>
+<script>
+    const {
+        authorizedFetch,
+        fillSessionSummary,
+        formatError,
+        getApiBase,
+        getSession,
+        getUserIdFromPage,
+        initializeRoleView,
+        readJson,
+        redirectToLogin,
+        setStatus
+    } = window.erpAuth;
+
+    function renderProjects(projects) {
+        const container = document.getElementById("projectsList");
+        if (!projects || projects.length === 0) {
+            container.innerHTML = '<div class="empty-state">No projects connected to this user yet.</div>';
+            return;
+        }
+
+        container.innerHTML = projects.map(function (project) {
+            return `
+                <a class="collection-item" href="/pages/entity-detail.html?type=project&id=${encodeURIComponent(project.id || "")}">
+                    <h3>${project.name || "Unnamed project"}</h3>
+                    <div class="inline-meta">
+                        <span class="tag">${project.status || "Unknown status"}</span>
+                        <span class="tag">${project.id || "No id"}</span>
+                    </div>
+                </a>
+            `;
+        }).join("");
+    }
+
+    async function loadProjects() {
+        setStatus("projectsStatus", "Loading your projects...", "");
+
+        try {
+            await initializeRoleView();
+            const userId = getUserIdFromPage();
+            if (!userId) {
+                throw new Error("User ID is required");
+            }
+
+            const response = await authorizedFetch(getApiBase() + "/projects/users-projects/" + encodeURIComponent(userId), {
+                method: "GET"
+            });
+            const payload = await readJson(response);
+
+            if (!response.ok) {
+                throw payload;
+            }
+
+            renderProjects(payload);
+            fillSessionSummary("session");
+            setStatus("projectsStatus", "Projects loaded successfully.", "success");
+        } catch (error) {
+            setStatus("projectsStatus", formatError(error), "error");
+        }
+    }
+
+    fillSessionSummary("session");
+
+    if (!getSession().accessToken && !getSession().refreshToken) {
+        redirectToLogin();
+    } else {
+        loadProjects();
+    }
+</script>
+</body>
+</html>

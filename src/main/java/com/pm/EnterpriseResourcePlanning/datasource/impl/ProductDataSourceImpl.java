@@ -38,8 +38,8 @@ public class ProductDataSourceImpl extends MessageAlertDataSource implements Pro
     }
 
     @Override
-    public void updateProduct(String name, Double price, Integer unit, ProductStatus status) {
-        execute(() -> productDao.updateProduct(name, price, unit, status));
+    public void updateProduct(String name, Double price, Integer unit, ProductStatus status,UUID id) {
+        execute(() -> productDao.updateProduct(name, price, unit, status,id));
     }
 
     @Override

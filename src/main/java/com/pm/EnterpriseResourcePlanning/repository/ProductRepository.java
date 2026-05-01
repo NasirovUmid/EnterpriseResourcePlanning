@@ -17,29 +17,25 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ProductRepository extends JpaRepository<ProductsEntity, UUID>, JpaSpecificationExecutor<ProductsEntity> {
-
-    @Query(value = """
-            INSERT INTO ProductsEntity (name, price, unit,status) VALUES (:name,:price,:unit,:status)""")
-    Optional<ProductsEntity> saveProduct(@Param("name") String name, @Param("price") Double price, @Param("unit") Integer unit, @Param("status") ProductStatus status);
+public interface ProductRepository extends JpaRepository<ProductsEntity, UUID>, JpaSpecificationExecutor<ProductsEntity>, CustomProductRepository {
 
     @Transactional(readOnly = true)
     Page<ProductsEntity> findAll(Specification<ProductsEntity> specification, Pageable pageable);
 
     @Modifying
+    @Transactional
     @Query(value = """
             UPDATE products SET name = coalesce(:name,name), price = coalesce(:price,price), 
-                        unit = coalesce(:unit,unit),status = coalesce(:status,status)""", nativeQuery = true)
+                        unit = coalesce(:unit,unit),status = coalesce(:status,status) where id = :id""", nativeQuery = true)
     int updateProduct(@Param("name") String name, @Param("price") Double price, @Param("unit") Integer unit,
-                      @Param("status") ProductStatus status);
+                      @Param("status") ProductStatus status, @Param("id") UUID id);
 
     @Modifying
     @Query(value = """
             UPDATE products SET unit = unit - :amount WHERE id = :id AND unit >= :amount""", nativeQuery = true)
     int updateProductUnit(@Param("amount") Integer amount, @Param("id") UUID id);
 
-    @Query(value = """
-            select pe from ProductsEntity pe where pe.id = :id""")
-    Optional<ProductsEntity> getProductById(@Param("id") UUID id);
+    @Transactional(readOnly = true)
+    Optional<ProductsEntity> findProductsEntityById(UUID id);
 
 }

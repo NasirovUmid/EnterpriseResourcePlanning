@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP User Organizations</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>My Organizations</h1>
+            <p>Your linked organizations are shown from the current signed-in account.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/index.html">Home</a>
+            <a class="nav-pill" href="/pages/profile.html">Profile</a>
+            <a class="nav-pill" href="/pages/change-password.html">Change password</a>
+            <a class="nav-pill" href="/pages/organization-workspace.html" data-visible-for="MOD_ORGANIZATIONS" data-hidden-for="ADMIN">Organization workspace</a>
+            <a class="nav-pill" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS">Admin panel</a>
+        </div>
+    </div>
+
+    <section class="panel">
+        <span class="eyebrow">Organizations</span>
+        <h2 class="section-title">Organizations connected to your account</h2>
+        <p class="subtle">This page calls `GET /organizations/user-organization/{id}` with automatic token refresh.</p>
+
+        <div id="organizationsStatus" class="status-box">Loading your organizations...</div>
+        <div id="organizationsList" class="collection-list">
+            <div class="empty-state">Organizations will appear here.</div>
+        </div>
+    </section>
+
+    <section class="card" style="margin-top: 22px;">
+        <span class="eyebrow">Session Details</span>
+        <h2 class="section-title">Stored auth context</h2>
+        <div class="stats-grid">
+            <div class="stat">
+                <strong>Email</strong>
+                <span id="session-email">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>User ID</strong>
+                <span id="session-userId">Not available</span>
+            </div>
+            <div class="stat">
+                <strong>Roles</strong>
+                <span id="session-roles">Not loaded</span>
+            </div>
+            <div class="stat">
+                <strong>Expires At</strong>
+                <span id="session-expiresAt">Not available</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="/js/auth-pages.js"></script>
+<script>
+    const {
+        authorizedFetch,
+        fillSessionSummary,
+        formatError,
+        getApiBase,
+        getSession,
+        getUserIdFromPage,
+        initializeRoleView,
+        readJson,
+        redirectToLogin,
+        setStatus
+    } = window.erpAuth;
+
+    function renderOrganizations(organizations) {
+        const container = document.getElementById("organizationsList");
+        if (!organizations || organizations.length === 0) {
+            container.innerHTML = '<div class="empty-state">No organizations connected to this user yet.</div>';
+            return;
+        }
+
+        container.innerHTML = organizations.map(function (organization) {
+            return `
+                <a class="collection-item" href="/pages/entity-detail.html?type=organization&id=${encodeURIComponent(organization.id || "")}">
+                    <h3>${organization.name || "Unnamed organization"}</h3>
+                    <p>INN: ${organization.inn || "-"}</p>
+                    <p>Address: ${organization.address || "-"}</p>
+                    <div class="inline-meta">
+                        <span class="tag">${organization.id || "No id"}</span>
+                    </div>
+                </a>
+            `;
+        }).join("");
+    }
+
+    async function loadOrganizations() {
+        setStatus("organizationsStatus", "Loading your organizations...", "");
+
+        try {
+            await initializeRoleView();
+            const userId = getUserIdFromPage();
+            if (!userId) {
+                throw new Error("User ID is required");
+            }
+
+            const response = await authorizedFetch(getApiBase() + "/organizations/user-organization/" + encodeURIComponent(userId), {
+                method: "GET"
+            });
+            const payload = await readJson(response);
+
+            if (!response.ok) {
+                throw payload;
+            }
+
+            renderOrganizations(payload);
+            fillSessionSummary("session");
+            setStatus("organizationsStatus", "Organizations loaded successfully.", "success");
+        } catch (error) {
+            setStatus("organizationsStatus", formatError(error), "error");
+        }
+    }
+
+    fillSessionSummary("session");
+
+    if (!getSession().accessToken && !getSession().refreshToken) {
+        redirectToLogin();
+    } else {
+        loadOrganizations();
+    }
+</script>
+</body>
+</html>

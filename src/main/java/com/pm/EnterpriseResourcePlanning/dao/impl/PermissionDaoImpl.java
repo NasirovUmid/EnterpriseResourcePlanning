@@ -28,7 +28,7 @@ public class PermissionDaoImpl implements PermissionDao {
     }
 
     @Override
-    public PermissionEntity savePermission(String name, ModuleEntity module, ActionEntity action) {
+    public PermissionEntity savePermission(String name, UUID module, UUID action) {
         return repository.savePermission(name, module, action).orElseThrow(RuntimeException::new);
     }
 
@@ -38,12 +38,12 @@ public class PermissionDaoImpl implements PermissionDao {
     }
 
     @Override
-    public void updatePermission(String name, ModuleEntity module, ActionEntity action, UUID id) {
+    public void updatePermission(String name, UUID module, UUID action, UUID id) {
         repository.updatePermission(name, module, action, id);
     }
 
     @Override
     public PermissionEntity getPermissionById(UUID id) {
-        return repository.getPermissionById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.PERMISSION_NOT_FOUND, id));
+        return repository.findPermissionEntityById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.PERMISSION_NOT_FOUND, id));
     }
 }

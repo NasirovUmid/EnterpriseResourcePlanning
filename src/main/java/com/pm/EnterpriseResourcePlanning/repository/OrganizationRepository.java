@@ -16,13 +16,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface OrganizationRepository extends JpaRepository<OrganizationEntity, UUID>, JpaSpecificationExecutor<OrganizationEntity> {
-
-    @Query(value = """
-            INSERT INTO OrganizationEntity (name, inn, address) VALUES (:name,:inn,:address)""")
-    Optional<OrganizationEntity> saveOrganization(@Param("name") String name, @Param("inn") String inn, @Param("address") String address);
+public interface OrganizationRepository extends JpaRepository<OrganizationEntity, UUID>, JpaSpecificationExecutor<OrganizationEntity>, CustomOrganizationRepository {
 
     @Modifying
+    @Transactional
     @Query(value = """
             UPDATE organizations SET name = coalesce(:name,name), address = coalesce(:address,address) where id = :id""", nativeQuery = true)
     int updateOrganization(@Param("name") String name, @Param("address") String address, @Param("id") UUID id);

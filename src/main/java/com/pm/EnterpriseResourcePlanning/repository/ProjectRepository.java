@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> , JpaSpecificationExecutor<ProjectEntity> {
+public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID>, JpaSpecificationExecutor<ProjectEntity>, CustomProjectRepository {
 
     @Query(value = """
             SELECT u.* FROM users u
@@ -32,16 +32,13 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> , 
     @Transactional(readOnly = true)
     Page<ProjectEntity> findAll(Specification<ProjectEntity> specification, Pageable pageable);
 
-    @Query(value = """
-            INSERT INTO ProjectEntity (name, status) VALUES (:name,coalesce(:status,status))""")
-    Optional<ProjectEntity> saveProject(@Param("name") String name, @Param("status") ProjectStatus projectStatus);
-
-
     @Modifying
+    @Transactional
     @Query(value = """
             UPDATE projects SET name = coalesce(:name,name),status = coalesce(:status,status) where id = :id""", nativeQuery = true)
     void updateProject(@Param("name") String name, @Param("status") ProjectStatus status, @Param("id") UUID id);
 
+    @Transactional(readOnly = true)
     @Query(value = """
             select pe from ProjectEntity pe where pe.id = :id""")
     Optional<ProjectEntity> getProjectById(@Param("id") UUID id);

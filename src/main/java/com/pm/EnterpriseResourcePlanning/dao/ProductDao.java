@@ -14,7 +14,7 @@ public interface ProductDao {
 
     Page<ProductsEntity> getProductsPage(Pageable pageable, Specification<ProductsEntity> specification);
 
-    void updateProduct(String name, Double price, Integer unit, ProductStatus status);
+    void updateProduct(String name, Double price, Integer unit, ProductStatus status,UUID id);
 
     void updateProductUnit(Integer amount, UUID id);
 

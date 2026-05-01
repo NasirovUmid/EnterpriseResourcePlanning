@@ -11,14 +11,13 @@
     <div class="topbar">
         <div class="brand-block">
             <h1>User Profile</h1>
-            <p>Personal info, projects, and organizations are loaded automatically for the current user.</p>
+            <p>Role-aware dashboard with separate pages for personal lists and moderator workspaces.</p>
         </div>
         <div class="nav-links">
             <a class="nav-pill" href="/index.html">Home</a>
-            <a class="nav-pill" href="/pages/login.html">Login</a>
-            <a class="nav-pill" href="/pages/register.html">Register</a>
-            <a class="nav-pill" href="/pages/change-password.html">Change password</a>
-            <a class="nav-pill" href="/pages/admin-panel.html">Admin panel</a>
+            <a class="nav-pill" href="/pages/user-projects.html" data-hidden-for="ADMIN">My projects</a>
+            <a class="nav-pill" href="/pages/user-organizations.html" data-hidden-for="ADMIN">My organizations</a>
+            <a class="nav-pill" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS">Admin panel</a>
         </div>
     </div>
 
@@ -26,7 +25,7 @@
         <section class="panel">
             <span class="eyebrow">Profile Lookup</span>
             <h2 class="section-title">Current user overview</h2>
-            <p class="subtle">This page reads the user ID from `localStorage` or `?id=...`, then loads user data, projects, and organizations.</p>
+            <p class="subtle">This page loads your profile and role list, then shows only the pages that match your access level.</p>
 
             <div class="form-grid">
                 <div class="input-row">
@@ -42,6 +41,22 @@
             </div>
 
             <div id="profileStatus" class="status-box">Waiting for automatic profile loading.</div>
+
+            <div class="profile-avatar-block">
+                <img id="profileAvatar" class="profile-avatar" alt="User avatar" hidden>
+                <div class="avatar-actions">
+                    <button id="updateAvatarButton" class="btn btn-secondary" type="button">Update Avatar</button>
+                    <div id="avatarChooser" class="avatar-chooser" hidden>
+                        <input id="avatarFile" class="file-input" type="file" accept="image/*">
+                        <label class="file-choice" for="avatarFile">
+                            <span>Choose file</span>
+                            <strong id="avatarFileName">No file selected</strong>
+                        </label>
+                        <button id="saveAvatarButton" class="btn btn-primary" type="button">Save Avatar</button>
+                        <button id="cancelAvatarButton" class="btn btn-secondary" type="button">Cancel</button>
+                    </div>
+                </div>
+            </div>
 
             <div class="stats-grid">
                 <div class="stat">
@@ -60,37 +75,59 @@
                     <strong>Status</strong>
                     <span id="profile-status-value">Not loaded</span>
                 </div>
+                <div class="stat">
+                    <strong>Roles</strong>
+                    <span id="profile-roles">Not loaded</span>
+                </div>
             </div>
         </section>
 
         <section class="panel highlight">
-            <span class="eyebrow">Automatic Session</span>
-            <h2 class="title">Token refresh is now background behavior.</h2>
+            <span class="eyebrow">Role Routing</span>
+            <h2 class="title">Each role now gets its own front-end path.</h2>
             <p class="subtle">
-                Protected requests first try the current access token. If it is expired, the page silently calls `/auth/refresh`. If refresh also fails, the session is cleared and you are redirected to login.
+                `USER` works through personal pages. `MOD_PROJECTS` and `MOD_ORGANIZATIONS` get their own workspace pages. `ADMIN` can also open the combined admin panel.
             </p>
             <ul class="note-list">
-                <li>No manual refresh button is needed anymore.</li>
-                <li>Reloading profile also reloads organizations and projects.</li>
-                <li>The profile still needs a valid `userId` because your current API is based on `GET /users/{id}`.</li>
+                <li>Token refresh stays automatic in the background.</li>
+                <li>UI visibility is based on `GET /users/{id}/roles`.</li>
+                <li>Backend security still remains the real source of truth.</li>
             </ul>
         </section>
     </div>
 
     <div class="content-grid" style="margin-top: 22px;">
         <section class="card">
-            <span class="eyebrow">Projects</span>
-            <h2 class="section-title">User projects</h2>
-            <div id="projectsList" class="collection-list">
-                <div class="empty-state">Projects will appear here after profile load.</div>
+            <span class="eyebrow">User Area</span>
+            <h2 class="section-title">Personal pages</h2>
+            <div class="dashboard-links">
+                <a class="action-card" href="/pages/user-projects.html" data-hidden-for="ADMIN">
+                    <strong>My projects</strong>
+                    <span>View and interact with your assigned projects.</span>
+                </a>
+                <a class="action-card" href="/pages/user-organizations.html" data-hidden-for="ADMIN">
+                    <strong>My organizations</strong>
+                    <span>Browse the organizations you are a member of.</span>
+                </a>
             </div>
         </section>
 
         <section class="card">
-            <span class="eyebrow">Organizations</span>
-            <h2 class="section-title">User organizations</h2>
-            <div id="organizationsList" class="collection-list">
-                <div class="empty-state">Organizations will appear here after profile load.</div>
+            <span class="eyebrow">Role Workspaces</span>
+            <h2 class="section-title">Available pages for your roles</h2>
+            <div class="dashboard-links">
+                <a class="action-card" href="/pages/project-workspace.html" data-visible-for="MOD_PROJECTS" data-hidden-for="ADMIN">
+                    <strong>Project workspace</strong>
+                    <span>Create projects and review project scope for project roles.</span>
+                </a>
+                <a class="action-card" href="/pages/organization-workspace.html" data-visible-for="MOD_ORGANIZATIONS" data-hidden-for="ADMIN">
+                    <strong>Organization workspace</strong>
+                    <span>Create organizations and review organization scope for organization roles.</span>
+                </a>
+                <a class="action-card" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS">
+                    <strong>Admin panel</strong>
+                    <span>Open the combined admin-only creation screen.</span>
+                </a>
             </div>
         </section>
     </div>
@@ -108,8 +145,8 @@
                 <span id="session-userId">Not available</span>
             </div>
             <div class="stat">
-                <strong>Token Type</strong>
-                <span id="session-tokenType">Not available</span>
+                <strong>Roles</strong>
+                <span id="session-roles">Not loaded</span>
             </div>
             <div class="stat">
                 <strong>Expires At</strong>
@@ -128,10 +165,11 @@
         getApiBase,
         getSession,
         getUserIdFromPage,
-        readJson,
-        setStatus,
+        initializeRoleView,
         logoutSession,
-        redirectToLogin
+        readJson,
+        redirectToLogin,
+        setStatus
     } = window.erpAuth;
 
     function syncUserIdInput() {
@@ -149,45 +187,51 @@
         document.getElementById("profile-status-value").textContent = user.status || "-";
     }
 
-    function renderProjects(projects) {
-        const container = document.getElementById("projectsList");
-        if (!projects || projects.length === 0) {
-            container.innerHTML = '<div class="empty-state">No projects found for this user.</div>';
-            return;
-        }
-
-        container.innerHTML = projects.map(function (project) {
-            return `
-                <article class="collection-item">
-                    <h3>${project.name || "Unnamed project"}</h3>
-                    <div class="inline-meta">
-                        <span class="tag">${project.status || "Unknown status"}</span>
-                        <span class="tag">${project.id || "No id"}</span>
-                    </div>
-                </article>
-            `;
-        }).join("");
+    function renderRoles(roles) {
+        document.getElementById("profile-roles").textContent = roles.length ? roles.join(", ") : "No roles found";
     }
 
-    function renderOrganizations(organizations) {
-        const container = document.getElementById("organizationsList");
-        if (!organizations || organizations.length === 0) {
-            container.innerHTML = '<div class="empty-state">No organizations found for this user.</div>';
+    function setAvatarPlaceholder() {
+        const avatar = document.getElementById("profileAvatar");
+        const fullName = document.getElementById("profile-fullName").textContent || "User";
+        const initials = fullName.split(/\s+/).filter(Boolean).slice(0, 2).map(function(part) {
+            return part.charAt(0).toUpperCase();
+        }).join("") || "U";
+        const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">' +
+            '<rect width="160" height="160" rx="80" fill="#e8f4f6"/>' +
+            '<text x="80" y="91" text-anchor="middle" font-size="46" font-family="Segoe UI, Arial" font-weight="700" fill="#0a5263">' + initials + '</text>' +
+            '</svg>';
+        avatar.src = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+        avatar.hidden = false;
+    }
+
+    async function setAvatarPreview(userId) {
+        const avatar = document.getElementById("profileAvatar");
+        if (!userId) {
+            setAvatarPlaceholder();
             return;
         }
 
-        container.innerHTML = organizations.map(function (organization) {
-            return `
-                <article class="collection-item">
-                    <h3>${organization.name || "Unnamed organization"}</h3>
-                    <p>INN: ${organization.inn || "-"}</p>
-                    <p>Address: ${organization.address || "-"}</p>
-                    <div class="inline-meta">
-                        <span class="tag">${organization.id || "No id"}</span>
-                    </div>
-                </article>
-            `;
-        }).join("");
+        try {
+            const response = await authorizedFetch(getApiBase() + "/avatars/" + encodeURIComponent(userId) + "?t=" + Date.now(), {
+                method: "GET"
+            });
+
+            if (!response.ok) {
+                throw await readJson(response);
+            }
+
+            if (avatar.dataset.objectUrl) {
+                URL.revokeObjectURL(avatar.dataset.objectUrl);
+            }
+
+            const objectUrl = URL.createObjectURL(await response.blob());
+            avatar.dataset.objectUrl = objectUrl;
+            avatar.src = objectUrl;
+            avatar.hidden = false;
+        } catch (error) {
+            setAvatarPlaceholder();
+        }
     }
 
     async function fetchJsonOrThrow(url) {
@@ -200,7 +244,7 @@
     }
 
     async function loadProfile() {
-        setStatus("profileStatus", "Loading profile, projects, and organizations...", "");
+        setStatus("profileStatus", "Loading profile and roles...", "");
 
         try {
             const userId = getUserIdFromPage();
@@ -210,15 +254,12 @@
                 throw new Error("User ID is required for profile loading");
             }
 
-            const [user, projects, organizations] = await Promise.all([
-                fetchJsonOrThrow(getApiBase() + "/users/" + encodeURIComponent(userId)),
-                fetchJsonOrThrow(getApiBase() + "/projects/users-projects/" + encodeURIComponent(userId)),
-                fetchJsonOrThrow(getApiBase() + "/organizations/user-organization/" + encodeURIComponent(userId))
-            ]);
+            const user = await fetchJsonOrThrow(getApiBase() + "/users/" + encodeURIComponent(userId));
+            const roles = await initializeRoleView();
 
             renderProfile(user);
-            renderProjects(projects);
-            renderOrganizations(organizations);
+            renderRoles(roles);
+            await setAvatarPreview(userId);
             fillSessionSummary("session");
             setStatus("profileStatus", "Profile data loaded successfully.", "success");
         } catch (error) {
@@ -227,6 +268,63 @@
     }
 
     document.getElementById("loadProfileButton").addEventListener("click", loadProfile);
+
+    document.getElementById("profileAvatar").addEventListener("error", function () {
+        this.hidden = true;
+    });
+
+    document.getElementById("updateAvatarButton").addEventListener("click", function () {
+        document.getElementById("updateAvatarButton").hidden = true;
+        document.getElementById("avatarChooser").hidden = false;
+    });
+
+    document.getElementById("cancelAvatarButton").addEventListener("click", function () {
+        document.getElementById("avatarFile").value = "";
+        document.getElementById("avatarFileName").textContent = "No file selected";
+        document.getElementById("avatarChooser").hidden = true;
+        document.getElementById("updateAvatarButton").hidden = false;
+    });
+
+    document.getElementById("avatarFile").addEventListener("change", function () {
+        const file = this.files && this.files[0];
+        document.getElementById("avatarFileName").textContent = file ? file.name : "No file selected";
+    });
+
+    document.getElementById("saveAvatarButton").addEventListener("click", async function () {
+        const userId = getUserIdFromPage();
+        const fileInput = document.getElementById("avatarFile");
+        const file = fileInput.files && fileInput.files[0];
+
+        if (!userId || !file) {
+            setStatus("profileStatus", "Choose an image before saving avatar.", "error");
+            return;
+        }
+
+        setStatus("profileStatus", "Updating avatar...", "");
+
+        try {
+            const formData = new FormData();
+            formData.append("image", file);
+
+            const response = await authorizedFetch(getApiBase() + "/avatars/" + encodeURIComponent(userId), {
+                method: "PUT",
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw await readJson(response);
+            }
+
+            fileInput.value = "";
+            document.getElementById("avatarFileName").textContent = "No file selected";
+            document.getElementById("avatarChooser").hidden = true;
+            document.getElementById("updateAvatarButton").hidden = false;
+            await setAvatarPreview(userId);
+            setStatus("profileStatus", "Avatar updated successfully.", "success");
+        } catch (error) {
+            setStatus("profileStatus", formatError(error), "error");
+        }
+    });
 
     document.getElementById("logoutButton").addEventListener("click", async function () {
         setStatus("profileStatus", "Logging out...", "");

@@ -6,6 +6,7 @@ import com.pm.EnterpriseResourcePlanning.enums.ClientType;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
 import com.pm.EnterpriseResourcePlanning.exceptions.NotFoundException;
 import com.pm.EnterpriseResourcePlanning.repository.ClientRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -14,9 +15,10 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class ClientDaoImpl implements ClientDao {
 
-    private ClientRepository repository;
+    private final ClientRepository repository;
 
     @Override
     public ClientEntity saveClient(String fullname, String phone, ClientType type) {
@@ -35,6 +37,6 @@ public class ClientDaoImpl implements ClientDao {
 
     @Override
     public ClientEntity getClientById(UUID id) {
-        return repository.getClientById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.CLIENT_NOT_FOUND,id));
+        return repository.findClientEntityById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.CLIENT_NOT_FOUND,id));
     }
 }

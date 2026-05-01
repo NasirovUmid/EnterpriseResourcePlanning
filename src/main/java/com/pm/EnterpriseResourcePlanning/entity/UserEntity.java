@@ -8,12 +8,12 @@ import lombok.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "users")
 public class UserEntity extends FullAuditEntity {
 
     @Id
@@ -33,7 +33,7 @@ public class UserEntity extends FullAuditEntity {
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
-    @Column(nullable = true,name = "status")
+    @Column(nullable = true, name = "status")
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus = UserStatus.ACTIVE;
 }

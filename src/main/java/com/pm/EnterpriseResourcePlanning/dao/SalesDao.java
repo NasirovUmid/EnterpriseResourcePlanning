@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface SalesDao {
 
-    SalesEntity saveSales(ContractsEntity contracts, Double totalprice, Instant date, SalesStatus status);
+    SalesEntity saveSales(UUID contractId, Double totalprice, Instant date, SalesStatus status);
 
     Page<SalesEntity> getSalesPage(Pageable pageable);
 

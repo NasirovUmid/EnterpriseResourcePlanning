@@ -15,5 +15,6 @@ public interface UserRolesDao {
 
     List<RolesEntity> findRolesByUserId(UUID userId);
 
+    List<String> findAllAuthoritiesByUserId(UUID userId);
 
 }

@@ -2,6 +2,7 @@ package com.pm.EnterpriseResourcePlanning.repository.impl;
 
 import com.pm.EnterpriseResourcePlanning.entity.OrganizationEntity;
 import com.pm.EnterpriseResourcePlanning.entity.ProjectEntity;
+import com.pm.EnterpriseResourcePlanning.enums.ProjectStatus;
 import com.pm.EnterpriseResourcePlanning.repository.ProjectOrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -58,17 +59,26 @@ public class ProjectOrganizationRepositoryImpl implements ProjectOrganizationRep
     public List<OrganizationEntity> getProjectOrganizations(UUID projectId) {
         return dsl.select(oTable.fields())
                 .from(oTable)
-                .join(tableName).on(field("organizations.id").eq(tableName.field(organizationField)))
-                .where(tableName.field(projectField).eq(projectId))
-                .fetchInto(OrganizationEntity.class);
+                .join(tableName).on(field("organizations.id").eq(organizationField))
+                .where(projectField.eq(projectId))
+                .fetch(record -> OrganizationEntity.builder()
+                        .id(record.get(field("id", UUID.class)))
+                        .name(record.get(field("name", String.class)))
+                        .inn(record.get(field("inn", String.class)))
+                        .address(record.get("address", String.class))
+                        .build());
     }
 
     @Override
     public List<ProjectEntity> getOrganizationProjects(UUID organizationId) {
         return dsl.select(pTable.fields())
                 .from(pTable)
-                .join(tableName).on(field("projects.id").eq(tableName.field(projectField)))
-                .where(tableName.field(organizationField).eq(organizationId))
-                .fetchInto(ProjectEntity.class);
+                .join(tableName).on(field("projects.id").eq(projectField))
+                .where(organizationField.eq(organizationId))
+                .fetch(record -> ProjectEntity.builder()
+                        .id(record.get(field("id", UUID.class)))
+                        .name(record.get(field("name", String.class)))
+                        .status(ProjectStatus.valueOf(String.valueOf(record.get(field("status", String.class)))))
+                        .build());
     }
 }

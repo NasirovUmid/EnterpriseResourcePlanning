@@ -1,6 +1,9 @@
 package com.pm.EnterpriseResourcePlanning.usecases;
 
+import com.pm.EnterpriseResourcePlanning.dao.UserDao;
 import com.pm.EnterpriseResourcePlanning.dao.impl.UserDaoImpl;
+import com.pm.EnterpriseResourcePlanning.datasource.OrganizationDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.UserOrganizationDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.impl.OrganizationDataSourceImpl;
 import com.pm.EnterpriseResourcePlanning.datasource.impl.UserOrganizationDataSourceImpl;
 import com.pm.EnterpriseResourcePlanning.dto.filters.OrganizationFilterDto;
@@ -23,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,10 +35,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrganizationUseCase {
 
-    private final OrganizationDataSourceImpl organizationDataSource;
-    private final UserOrganizationDataSourceImpl userOrganizationDataSource;
-    private final UserDaoImpl userDao;
+    private final OrganizationDataSource organizationDataSource;
+    private final UserOrganizationDataSource userOrganizationDataSource;
+    private final UserDao userDao;
 
+    @Transactional
     public OrganizationResponseDto createOrganization(@Valid OrganizationRequestDto organizationRequestDto) {
 
         if (organizationDataSource.existsByInn(organizationRequestDto.inn())) {
@@ -44,10 +49,12 @@ public class OrganizationUseCase {
         return organizationDataSource.saveOrganization(organizationRequestDto.name(), organizationRequestDto.inn(), organizationRequestDto.address());
     }
 
+    @Transactional(readOnly = true)
     public OrganizationResponseDto getOrganizationById(UUID id) {
         return organizationDataSource.getOrganizationById(id);
     }
 
+    @Transactional(readOnly = true)
     public Page<OrganizationResponseDto> getOrganizationsPage(int page, int size, String sort, OrganizationFilterDto organizationFilterDto) {
 
         Specification<OrganizationEntity> specification = OrganizationSpecifications.build(organizationFilterDto.name(), organizationFilterDto.inn(), organizationFilterDto.address());
@@ -56,10 +63,12 @@ public class OrganizationUseCase {
         return organizationDataSource.getOrganizationsPage(specification, pageable);
     }
 
+    @Transactional
     public void updateOrganization(UUID id, OrganizationUpdateRequestDto organizationUpdateRequestDto) {
         organizationDataSource.updateOrganization(organizationUpdateRequestDto.name(), organizationUpdateRequestDto.address(), id);
     }
 
+    @Transactional
     public void createUserOrganizationLink(@Valid IntermediateRequestDto userOrganizationRequestDto) {
 
         if (userDao.getUserById(userOrganizationRequestDto.uuid()).getUserStatus().equals(UserStatus.DEACTIVATED)) {
@@ -77,14 +86,17 @@ public class OrganizationUseCase {
         return userOrganizationDataSource.exists(userOrganizationRequestDto.uuid(), userOrganizationRequestDto.uuid1());
     }
 
+    @Transactional
     public void removeUserOrganizationLink(@Valid IntermediateRequestDto userOrganizationRequestDto) {
         userOrganizationDataSource.removeUserOrganizationLink(userOrganizationRequestDto.uuid(), userOrganizationRequestDto.uuid1());
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponseDto> getOrganizationUsers(UUID id) {
         return userOrganizationDataSource.getOrganizationUsers(id);
     }
 
+    @Transactional(readOnly = true)
     public List<OrganizationResponseDto> getUserOrganizations(UUID userId) {
         return userOrganizationDataSource.getUserOrganizations(userId);
     }

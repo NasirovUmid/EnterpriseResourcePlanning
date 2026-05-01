@@ -1,6 +1,6 @@
 package com.pm.EnterpriseResourcePlanning.usecases;
 
-import com.pm.EnterpriseResourcePlanning.datasource.impl.ProductDataSourceImpl;
+import com.pm.EnterpriseResourcePlanning.datasource.ProductDataSource;
 import com.pm.EnterpriseResourcePlanning.dto.filters.ProductFilterDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProductRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProductUpdateRequestDto;
@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -22,13 +23,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductsUseCase {
 
-    private final ProductDataSourceImpl productDataSource;
+    private final ProductDataSource productDataSource;
 
+    @Transactional
     public ProductResponseDto createProduct(@Valid ProductRequestDto requestDto) {
         return productDataSource.saveProduct(requestDto.name(), requestDto.price(), requestDto.unit(), requestDto.productStatus());
     }
 
-
+    @Transactional(readOnly = true)
     public Page<ProductResponseDto> getProductsPage(int page, int size, ProductFilterDto productFilterDto, String sort) {
 
         Pageable pageable = PageRequest.of(page, size, toProductEntitySort(sort));
@@ -39,7 +41,7 @@ public class ProductsUseCase {
         return productDataSource.getProductsPage(pageable, specification);
     }
 
-
+    @Transactional
     public void updateProduct(@Valid ProductUpdateRequestDto productUpdateRequestDto) {
 
         if (productUpdateRequestDto == null || (productUpdateRequestDto.name() == null && productUpdateRequestDto.price() == null &&
@@ -48,15 +50,17 @@ public class ProductsUseCase {
         }
 
         productDataSource.updateProduct(productUpdateRequestDto.name(),
-                productUpdateRequestDto.price(), productUpdateRequestDto.unit(), productUpdateRequestDto.productStatus());
+                productUpdateRequestDto.price(), productUpdateRequestDto.unit(), productUpdateRequestDto.productStatus(), productUpdateRequestDto.productId());
 
     }
 
+    @Transactional(readOnly = true)
     public ProductResponseDto getProductById(UUID productId) {
 
         return productDataSource.getProductById(productId);
     }
 
+    @Transactional
     public void updateProductUnit(UUID id, Integer unit) {
 
         productDataSource.updateProductUnit(unit, id);

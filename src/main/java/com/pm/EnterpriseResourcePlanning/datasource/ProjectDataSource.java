@@ -17,7 +17,7 @@ public interface ProjectDataSource {
 
     Page<ProjectResponseDto> getProjectPage(Specification<ProjectEntity> specification, Pageable pageable);
 
-    ProjectResponseDto saveProject(String name, ProjectStatus projectStatus);
+    ProjectResponseDto saveProject(String name);
 
     void updateProject(String name, ProjectStatus status, UUID id);
 

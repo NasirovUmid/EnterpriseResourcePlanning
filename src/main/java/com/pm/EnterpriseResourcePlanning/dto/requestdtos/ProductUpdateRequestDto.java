@@ -3,7 +3,11 @@ package com.pm.EnterpriseResourcePlanning.dto.requestdtos;
 import com.pm.EnterpriseResourcePlanning.enums.ProductStatus;
 import jakarta.validation.constraints.*;
 
+import java.util.UUID;
+
 public record ProductUpdateRequestDto(
+        @NotNull
+        UUID productId,
         @NotBlank @Size(min = 5, max = 25)
         String name,
         @Positive @Digits(integer = 10, fraction = 2)

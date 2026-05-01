@@ -18,43 +18,18 @@ import java.util.UUID;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, UUID>, JpaSpecificationExecutor<UserEntity>, CustomUserRepository {
 
-//    @Query(value = """
-//            insert into UserEntity (fullName,username,password,phoneNumber,avatar)
-//                        VALUES (:fullname,:username,:password,:phone,:avatar)""")
-//    Optional<UserEntity> saveUser(@Param("fullname") String fullName, @Param("username") String name,
-//                                  @Param("password") String password, @Param("avatar") AvatarEntity avatarId, @Param("phone") String phone);
-
-    @Query(value = """
-            
-            SELECT EXISTS (
-                SELECT 1 FROM user_roles ur
-                JOIN role_permissions rp ON ur.role_id = rp.role_id
-                JOIN permissions p ON rp.permission_id = p.id
-                JOIN modules m ON p.module_id = m.id
-                JOIN actions a ON p.action_id = a.id
-                WHERE ur.user_id = :userId\s
-                  AND m.name = :moduleName\s
-                  AND a.name = :actionName
-            
-            )""", nativeQuery = true)
-    boolean checkAccess(@Param("userId") UUID userId,
-                        @Param("moduleName") String moduleName,
-                        @Param("actionName") String actionName);
-
     @Modifying
     @Transactional
     @Query(value = """
-            update users set full_name = coalesce(:fullname,full_name),
-                                         password = coalesce(:password,password),
-                                                     avatar_id = coalesce(:avatarId,avatar_id)""", nativeQuery = true)
+            update users set full_name = coalesce(:fullname,full_name) , phone_number = :phonenumber where id = :id
+            """, nativeQuery = true)
     void updateUser(@Param("id") UUID id,
                     @Param("fullname") String fullName,
-                    @Param("password") String password,
-                    @Param("avatarId") UUID avatarId);
+                    @Param("phonenumber")String phoneNumber);
 
     @Modifying
     @Query(value = """
-            update users set status = 'DEACTIVATED',updated_at = now() , updated_by = 'f025da77-d7ac-4fdf-b84f-ce57213d584a' where id =:id""", nativeQuery = true)
+            update users set status = 'DEACTIVATED' where id =:id""", nativeQuery = true)
     void deactivateUser(@Param("id") UUID uuid);
 
     @Transactional(readOnly = true)
@@ -65,4 +40,10 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID>, JpaSpec
     boolean existsByUsername(String username);
 
     Optional<UserEntity> findUserEntityByUsername(String username);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            update users set password = :password where id = :id""", nativeQuery = true)
+    void updateUserPassword(@Param("id") UUID id, @Param("password") String password);
 }

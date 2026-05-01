@@ -5,6 +5,7 @@ import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.Param;
 
 import java.util.UUID;
 
@@ -14,9 +15,7 @@ public interface UserDataSource {
 
     Page<UserResponseDto> getUsersPage(Specification<UserEntity> specification, Pageable pageable);
 
-    boolean checkAccess(UUID userId, String moduleName, String actionName);
-
-    void updateUser(UUID id, String fullName, String password, UUID avatarId);
+    void updateUser(UUID id, String fullName,String phoneNumber);
 
     void deactivateUser(UUID uuid);
 
@@ -25,5 +24,7 @@ public interface UserDataSource {
     boolean existsByUsername(String username);
 
     UserResponseDto findUserEntitiesByUsername(String username);
+
+    void updateUserPassword( UUID id, String password);
 
 }

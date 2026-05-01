@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,17 +37,8 @@ public class RoleController {
         return ResponseEntity.status(201).build();
     }
 
-    @GetMapping("/permissions-exists")
-    public ResponseEntity<Void> rolePermissionExists(@Valid @RequestBody IntermediateRequestDto rolePermissionRequestDto) {
-
-        boolean doesExists = roleUseCase.rolePermissionExists(rolePermissionRequestDto);
-
-        return doesExists ? ResponseEntity.ok().build() : ResponseEntity.status(404).build();
-    }
-
     @GetMapping
-    public Page<RoleResponseDto> getRolePages() {
-
+    public List<RoleResponseDto> getRoles() {
         return roleUseCase.getRolePages();
     }
 
@@ -56,10 +48,6 @@ public class RoleController {
         return roleUseCase.getRolePermissions(id);
     }
 
-    @GetMapping("/{id}")
-    public RoleResponseDto getRoleById(@PathVariable(name = "id") UUID id) {
-        return roleUseCase.getRoleById(id);
-    }
 
     @DeleteMapping("/permissions/{id}")
     public ResponseEntity<Void> deleteRolePermissionLink(@Valid @RequestBody IntermediateRequestDto rolePermissionRequestDto) {
@@ -68,6 +56,7 @@ public class RoleController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deactivateRole(@PathVariable(name = "id") UUID id) {
 

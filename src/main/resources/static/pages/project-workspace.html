@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Project Workspace</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>Project Workspace</h1>
+            <p>For `ADMIN` and `MOD_PROJECT`: create projects and review the list connected to your user domain.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/index.html">Home</a>
+            <a class="nav-pill" href="/pages/profile.html">Profile</a>
+            <a class="nav-pill" href="/pages/user-projects.html" data-hidden-for="ADMIN">My projects</a>
+            <a class="nav-pill" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS">Admin panel</a>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <section class="panel">
+            <span class="eyebrow">Create Project</span>
+            <h2 class="section-title">New project</h2>
+            <p class="subtle">This section is shown only for `ADMIN` and `MOD_PROJECT` and sends `POST /projects`.</p>
+
+            <form id="projectForm" class="form-grid">
+                <div class="input-row">
+                    <label for="projectName">Project name</label>
+                    <input id="projectName" type="text" placeholder="ERP Migration" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="projectStatus">Project status</label>
+                    <input id="projectStatus" type="text" value="AWAITING" required>
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Create project</button>
+                </div>
+            </form>
+
+            <div id="projectCreateStatus" class="status-box">Ready to create a project.</div>
+        </section>
+
+        <section class="panel">
+            <span class="eyebrow">Project List</span>
+            <h2 class="section-title">My project scope</h2>
+            <p class="subtle">For now the list is based on `GET /projects/users-projects/{id}`, which stays safe for role-based UI without relying on a global admin feed.</p>
+
+            <div id="projectsStatus" class="status-box">Loading project scope...</div>
+            <div id="projectsList" class="collection-list">
+                <div class="empty-state">Projects will appear here.</div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script src="/js/auth-pages.js"></script>
+<script>
+    const {
+        authorizedFetch,
+        fillSessionSummary,
+        formatError,
+        getApiBase,
+        getSession,
+        getUserIdFromPage,
+        guardPage,
+        readJson,
+        redirectToLogin,
+        setStatus
+    } = window.erpAuth;
+
+    function renderProjects(projects) {
+        const container = document.getElementById("projectsList");
+        if (!projects || projects.length === 0) {
+            container.innerHTML = '<div class="empty-state">No projects connected to this user yet.</div>';
+            return;
+        }
+
+        container.innerHTML = projects.map(function (project) {
+            return `
+                <article class="collection-item">
+                    <h3>${project.name || "Unnamed project"}</h3>
+                    <div class="inline-meta">
+                        <span class="tag">${project.status || "Unknown status"}</span>
+                        <span class="tag">${project.id || "No id"}</span>
+                    </div>
+                </article>
+            `;
+        }).join("");
+    }
+
+    async function loadProjects() {
+        setStatus("projectsStatus", "Loading project scope...", "");
+
+        try {
+            const userId = getUserIdFromPage();
+            if (!userId) {
+                throw new Error("User ID is required");
+            }
+
+            const response = await authorizedFetch(getApiBase() + "/projects/users-projects/" + encodeURIComponent(userId), {
+                method: "GET"
+            });
+            const payload = await readJson(response);
+
+            if (!response.ok) {
+                throw payload;
+            }
+
+            renderProjects(payload);
+            setStatus("projectsStatus", "Project scope loaded successfully.", "success");
+        } catch (error) {
+            setStatus("projectsStatus", formatError(error), "error");
+        }
+    }
+
+    document.getElementById("projectForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        setStatus("projectCreateStatus", "Creating project...", "");
+
+        try {
+            const response = await authorizedFetch(getApiBase() + "/projects", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: document.getElementById("projectName").value.trim(),
+                    status: document.getElementById("projectStatus").value.trim()
+                })
+            });
+
+            const payload = await readJson(response);
+            if (!response.ok) {
+                throw payload;
+            }
+
+            document.getElementById("projectForm").reset();
+            document.getElementById("projectStatus").value = "AWAITING";
+            setStatus("projectCreateStatus", "Project created successfully.", "success");
+            await loadProjects();
+        } catch (error) {
+            setStatus("projectCreateStatus", formatError(error), "error");
+        }
+    });
+
+    if (!getSession().accessToken && !getSession().refreshToken) {
+        redirectToLogin();
+    } else {
+        guardPage(["ADMIN", "MOD_PROJECTS"])
+            .then(function () {
+                fillSessionSummary("session");
+                return loadProjects();
+            })
+            .catch(function (error) {
+                console.error(error);
+            });
+    }
+</script>
+</body>
+</html>

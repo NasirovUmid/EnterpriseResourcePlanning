@@ -14,11 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ModuleRepository extends JpaRepository<ModuleEntity, UUID> {
-
-    @Query(value = """
-            INSERT INTO ModuleEntity (name) VALUES (:name)""")
-    Optional<ModuleEntity> saveModule(@Param("name") String name);
+public interface ModuleRepository extends JpaRepository<ModuleEntity, UUID>,CustomModuleRepository {
 
     @Transactional(readOnly = true)
     Page<ModuleEntity> findAll(Pageable pageable);

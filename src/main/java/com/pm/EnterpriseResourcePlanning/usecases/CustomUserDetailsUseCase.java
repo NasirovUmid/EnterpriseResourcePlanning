@@ -3,7 +3,6 @@ package com.pm.EnterpriseResourcePlanning.usecases;
 import com.pm.EnterpriseResourcePlanning.configuration.CustomUserDetails;
 import com.pm.EnterpriseResourcePlanning.dao.impl.UserDaoImpl;
 import com.pm.EnterpriseResourcePlanning.dao.impl.UserRolesDaoImpl;
-import com.pm.EnterpriseResourcePlanning.entity.RolesEntity;
 import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,8 +10,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,12 +22,15 @@ public class CustomUserDetailsUseCase implements UserDetailsService {
 
     @Override
     public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+
         UserEntity user = userDao.findUserByUsername(username);
+        userRolesDao.findRolesByUserId(user.getId()).forEach(rolesEntity -> authorities.add(new SimpleGrantedAuthority("ROLE_" + rolesEntity.getName())));
 
-        List<RolesEntity> roles = userRolesDao.findRolesByUserId(user.getId());
+        userRolesDao.findAllAuthoritiesByUserId(user.getId()).forEach(s ->
+                authorities.add(new SimpleGrantedAuthority(s)));
 
-        return new CustomUserDetails(user, roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
-                .collect(Collectors.toList()), user.getId());
+        return new CustomUserDetails(user,authorities,user.getId());
     }
 }

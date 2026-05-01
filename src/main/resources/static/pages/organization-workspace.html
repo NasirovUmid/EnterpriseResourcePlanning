@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Organization Workspace</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>Organization Workspace</h1>
+            <p>For `ADMIN` and `MOD_ORGANIZATION`: create organizations and review the organizations already tied to the current user.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/index.html">Home</a>
+            <a class="nav-pill" href="/pages/profile.html">Profile</a>
+            <a class="nav-pill" href="/pages/user-organizations.html" data-hidden-for="ADMIN">My organizations</a>
+            <a class="nav-pill" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS">Admin panel</a>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <section class="panel">
+            <span class="eyebrow">Create Organization</span>
+            <h2 class="section-title">New organization</h2>
+            <p class="subtle">This section is shown only for `ADMIN` and `MOD_ORGANIZATION` and sends `POST /organizations`.</p>
+
+            <form id="organizationForm" class="form-grid">
+                <div class="input-row">
+                    <label for="organizationName">Organization name</label>
+                    <input id="organizationName" type="text" placeholder="PM Group" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="organizationInn">INN</label>
+                    <input id="organizationInn" type="text" placeholder="123456789" required>
+                </div>
+
+                <div class="input-row">
+                    <label for="organizationAddress">Address</label>
+                    <input id="organizationAddress" type="text" placeholder="Tashkent, Yunusabad" required>
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Create organization</button>
+                </div>
+            </form>
+
+            <div id="organizationCreateStatus" class="status-box">Ready to create an organization.</div>
+        </section>
+
+        <section class="panel">
+            <span class="eyebrow">Organization List</span>
+            <h2 class="section-title">My organization scope</h2>
+            <p class="subtle">The list is based on `GET /organizations/user-organization/{id}` because the general organization page still expects a request body and is not browser-friendly yet.</p>
+
+            <div id="organizationsStatus" class="status-box">Loading organization scope...</div>
+            <div id="organizationsList" class="collection-list">
+                <div class="empty-state">Organizations will appear here.</div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script src="/js/auth-pages.js"></script>
+<script>
+    const {
+        authorizedFetch,
+        fillSessionSummary,
+        formatError,
+        getApiBase,
+        getSession,
+        getUserIdFromPage,
+        guardPage,
+        readJson,
+        redirectToLogin,
+        setStatus
+    } = window.erpAuth;
+
+    function renderOrganizations(organizations) {
+        const container = document.getElementById("organizationsList");
+        if (!organizations || organizations.length === 0) {
+            container.innerHTML = '<div class="empty-state">No organizations connected to this user yet.</div>';
+            return;
+        }
+
+        container.innerHTML = organizations.map(function (organization) {
+            return `
+                <article class="collection-item">
+                    <h3>${organization.name || "Unnamed organization"}</h3>
+                    <p>INN: ${organization.inn || "-"}</p>
+                    <p>Address: ${organization.address || "-"}</p>
+                    <div class="inline-meta">
+                        <span class="tag">${organization.id || "No id"}</span>
+                    </div>
+                </article>
+            `;
+        }).join("");
+    }
+
+    async function loadOrganizations() {
+        setStatus("organizationsStatus", "Loading organization scope...", "");
+
+        try {
+            const userId = getUserIdFromPage();
+            if (!userId) {
+                throw new Error("User ID is required");
+            }
+
+            const response = await authorizedFetch(getApiBase() + "/organizations/user-organization/" + encodeURIComponent(userId), {
+                method: "GET"
+            });
+            const payload = await readJson(response);
+
+            if (!response.ok) {
+                throw payload;
+            }
+
+            renderOrganizations(payload);
+            setStatus("organizationsStatus", "Organization scope loaded successfully.", "success");
+        } catch (error) {
+            setStatus("organizationsStatus", formatError(error), "error");
+        }
+    }
+
+    document.getElementById("organizationForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        setStatus("organizationCreateStatus", "Creating organization...", "");
+
+        try {
+            const response = await authorizedFetch(getApiBase() + "/organizations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: document.getElementById("organizationName").value.trim(),
+                    inn: document.getElementById("organizationInn").value.trim(),
+                    address: document.getElementById("organizationAddress").value.trim()
+                })
+            });
+
+            const payload = await readJson(response);
+            if (!response.ok) {
+                throw payload;
+            }
+
+            document.getElementById("organizationForm").reset();
+            setStatus("organizationCreateStatus", "Organization created successfully.", "success");
+            await loadOrganizations();
+        } catch (error) {
+            setStatus("organizationCreateStatus", formatError(error), "error");
+        }
+    });
+
+    if (!getSession().accessToken && !getSession().refreshToken) {
+        redirectToLogin();
+    } else {
+        guardPage(["ADMIN", "MOD_ORGANIZATIONS"])
+            .then(function () {
+                fillSessionSummary("session");
+                return loadOrganizations();
+            })
+            .catch(function (error) {
+                console.error(error);
+            });
+    }
+</script>
+</body>
+</html>

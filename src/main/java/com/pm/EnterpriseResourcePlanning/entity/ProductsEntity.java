@@ -2,18 +2,18 @@ package com.pm.EnterpriseResourcePlanning.entity;
 
 import com.pm.EnterpriseResourcePlanning.enums.ProductStatus;
 import com.pm.EnterpriseResourcePlanning.utils.FullAuditEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.UUID;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@Table(name = "products")
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductsEntity extends FullAuditEntity {
 
     @Id
@@ -31,5 +31,6 @@ public class ProductsEntity extends FullAuditEntity {
     private Integer unit;
 
     @Column(nullable = true)
-    private ProductStatus status = ProductStatus.DRAFT;
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status;
 }

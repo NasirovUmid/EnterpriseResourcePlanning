@@ -1,7 +1,7 @@
 package com.pm.EnterpriseResourcePlanning.usecases;
 
-import com.pm.EnterpriseResourcePlanning.datasource.impl.RolePermissionDataSourceImpl;
-import com.pm.EnterpriseResourcePlanning.datasource.impl.RolesDataSourceImpl;
+import com.pm.EnterpriseResourcePlanning.datasource.RoleDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.RolePermissionDataSource;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.RoleRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.PermissionResponseDto;
@@ -10,9 +10,8 @@ import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
 import com.pm.EnterpriseResourcePlanning.exceptions.AlreadyExistsException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,26 +20,25 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RoleUseCase {
 
-    private final RolesDataSourceImpl dataSource;
-    private final RolePermissionDataSourceImpl rolePermissionDataSource;
+    private final RoleDataSource dataSource;
+    private final RolePermissionDataSource rolePermissionDataSource;
 
+    @Transactional
     public RoleResponseDto createRole(@Valid RoleRequestDto requestDto) {
         return dataSource.saveRole(requestDto.name(), requestDto.status());
     }
 
-
-    public Page<RoleResponseDto> getRolePages() {
-        return dataSource.getRolePages(PageRequest.of(0, 25));
+    @Transactional(readOnly = true)
+    public List<RoleResponseDto> getRolePages() {
+        return dataSource.getRolePages();
     }
 
-    public RoleResponseDto getRoleById(UUID id) {
-        return dataSource.getRoleById(id);
-    }
-
+    @Transactional
     public void deactivateRole(UUID id) {
         dataSource.deactivateRole(id);
     }
 
+    @Transactional
     public void connectRolePermission(@Valid IntermediateRequestDto rolePermissionRequestDto) {
 
         if (rolePermissionExists(rolePermissionRequestDto)) {
@@ -54,10 +52,12 @@ public class RoleUseCase {
         return rolePermissionDataSource.exists(rolePermissionRequestDto.uuid(), rolePermissionRequestDto.uuid1());
     }
 
+    @Transactional
     public void deleteRolePermissionLink(@Valid IntermediateRequestDto rolePermissionRequestDto) {
         rolePermissionDataSource.removeUserRoleLink(rolePermissionRequestDto.uuid(), rolePermissionRequestDto.uuid1());
     }
 
+    @Transactional(readOnly = true)
     public List<PermissionResponseDto> getRolePermissions(UUID id) {
         return rolePermissionDataSource.getRolePermissions(id);
     }

@@ -31,11 +31,6 @@ public class AvatarDataSourceImpl extends MessageAlertDataSource implements Avat
     }
 
     @Override
-    public Page<AvatarResponseDto> getAvatarsPage(Pageable pageable) {
-        return execute(() -> avatarDao.getAvatarsPage(pageable).map(avatarMapper::toDto));
-    }
-
-    @Override
     public void updateAvatar(String url, UUID id) {
         execute(() -> avatarDao.updateAvatar(url, id));
     }
@@ -43,5 +38,10 @@ public class AvatarDataSourceImpl extends MessageAlertDataSource implements Avat
     @Override
     public AvatarResponseDto getAvatarById(UUID id) {
         return execute(() -> avatarMapper.toDto(avatarDao.getAvatarById(id)));
+    }
+
+    @Override
+    public AvatarResponseDto getAvatarByUserId(UUID id) {
+        return execute(() -> avatarMapper.toDto(avatarDao.getAvatarByUserId(id)));
     }
 }

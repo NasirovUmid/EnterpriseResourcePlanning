@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -20,12 +21,12 @@ public class ActionDaoImpl implements ActionDao {
 
     @Override
     public ActionEntity saveAction(String name) {
-        return repository.saveAction(name).orElseThrow(RuntimeException::new);
+        return repository.save(name).orElseThrow(RuntimeException::new);
     }
 
     @Override
-    public Page<ActionEntity> getActionPage(Pageable pageable) {
-        return repository.findAll(pageable);
+    public List<ActionEntity> getActionPage() {
+        return repository.findAll();
     }
 
     @Override

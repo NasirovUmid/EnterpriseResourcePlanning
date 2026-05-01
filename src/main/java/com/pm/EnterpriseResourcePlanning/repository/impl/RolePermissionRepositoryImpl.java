@@ -59,8 +59,13 @@ public class RolePermissionRepositoryImpl implements RolePermissionsRepository {
     public List<PermissionEntity> getRolePermissions(UUID roleId) {
         return dsl.select(pTable.fields())
                 .from(pTable)
-                .join(tableName).on(field("permissions.id", UUID.class).eq(tableName.field(permissionField)))
-                .where(tableName.field(roleField).eq(roleId))
-                .fetchInto(PermissionEntity.class);
+                .join(tableName).on(field("permissions.id", UUID.class).eq(permissionField))
+                .where(roleField.eq(roleId))
+                .fetch(record -> new PermissionEntity(
+                        record.get(field("id", UUID.class)),
+                        record.get(field("name", String.class)),
+                        record.get(field("module_id", UUID.class)),
+                        record.get(field("action_id", UUID.class))
+                ));
     }
 }

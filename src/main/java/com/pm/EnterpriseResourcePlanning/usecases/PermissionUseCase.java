@@ -1,6 +1,6 @@
 package com.pm.EnterpriseResourcePlanning.usecases;
 
-import com.pm.EnterpriseResourcePlanning.datasource.impl.PermissionDataSourceImpl;
+import com.pm.EnterpriseResourcePlanning.datasource.PermissionDataSource;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.PermissionRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.PermissionUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.PermissionResponseDto;
@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -21,13 +22,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PermissionUseCase {
 
-    private final PermissionDataSourceImpl dataSource;
+    private final PermissionDataSource dataSource;
 
+    @Transactional
     public PermissionResponseDto createPermission(@Valid PermissionRequestDto permissionRequestDto) {
 
         return dataSource.savePermission(permissionRequestDto.name(), permissionRequestDto.moduleId(), permissionRequestDto.actionId());
     }
 
+    @Transactional(readOnly = true)
     public Page<PermissionResponseDto> getPermissionPages(int page, int size, String sort, String name) {
 
         Specification<PermissionEntity> specification = PermissionSpecification.build(name);
@@ -51,6 +54,7 @@ public class PermissionUseCase {
                 : Sort.by(field).ascending();
     }
 
+    @Transactional(readOnly = true)
     public PermissionResponseDto getPermissionById(UUID id) {
         return dataSource.getPermissionById(id);
     }

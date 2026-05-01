@@ -17,6 +17,8 @@ public interface ContractDataSource {
 
     void updateContracts(Double amount, Instant startDate, Instant enddate, UUID id);
 
+    void deleteContract(UUID id);
+
     ContractResponseDto getContractById(UUID id);
 
     boolean existsByContractNumber(String contractNumber);

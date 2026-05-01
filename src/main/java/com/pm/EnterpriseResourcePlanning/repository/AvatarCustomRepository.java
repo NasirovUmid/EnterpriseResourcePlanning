@@ -13,5 +13,4 @@ public interface AvatarCustomRepository {
 
     Optional<AvatarEntity> getAvatarByUserId(UUID userId);
 
-
 }

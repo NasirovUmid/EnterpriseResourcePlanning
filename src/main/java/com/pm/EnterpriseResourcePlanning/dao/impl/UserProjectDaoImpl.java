@@ -32,6 +32,11 @@ public class UserProjectDaoImpl implements UserProjectDao {
 
     @Override
     public List<ProjectEntity> getUserProjects(UUID userId) {
-        return repository.getUserProjects(userId);
+
+        List<ProjectEntity> a = repository.getUserProjects(userId);
+
+        a.forEach(projectEntity -> System.out.println(a));
+
+        return a;
     }
 }

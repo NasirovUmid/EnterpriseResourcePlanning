@@ -17,13 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ClientRepository extends JpaRepository<ClientEntity, UUID>, JpaSpecificationExecutor<ClientEntity> {
-
-
-    @Query(value = """
-            INSERT INTO ClientEntity (fullName, phone, type) 
-                        VALUES (:fullname,:phone,:type)""")
-    Optional<ClientEntity> saveClient(@Param("fullname") String fullname, @Param("phone") String phone, @Param("type") ClientType type);
+public interface ClientRepository extends JpaRepository<ClientEntity, UUID>, JpaSpecificationExecutor<ClientEntity>, CustomClientRepository {
 
     @Transactional(readOnly = true)
     Page<ClientEntity> findAll(Specification<ClientEntity> specification, Pageable pageable);
@@ -33,8 +27,5 @@ public interface ClientRepository extends JpaRepository<ClientEntity, UUID>, Jpa
             UPDATE clients SET full_name = coalesce(:fullname,full_name) , phone = coalesce(:phone,phone) where id = :id""", nativeQuery = true)
     int updateClient(@Param("fullname") String fullname, @Param("phone") String phone, @Param("id") UUID id);
 
-
-    @Query(value = """
-            select ce from ClientEntity ce where ce.id = :id""")
-    Optional<ClientEntity> getClientById(@Param("id") UUID id);
+    Optional<ClientEntity> findClientEntityById(UUID id);
 }

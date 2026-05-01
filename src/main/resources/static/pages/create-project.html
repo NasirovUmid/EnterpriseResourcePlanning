@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Project — ERP</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>Create Project</h1>
+            <p style="color:var(--muted);margin:6px 0 0;">Add a new project to the platform.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/pages/admin-panel.html#projects">← Back to Projects</a>
+            <a class="nav-pill" href="/index.html">Home</a>
+        </div>
+    </div>
+
+    <div style="max-width:520px;margin:0 auto;">
+        <section class="panel">
+            <span class="eyebrow">New Project</span>
+            <h2 class="section-title" style="margin-top:10px;">Project details</h2>
+            <form id="projectForm" class="form-grid" style="margin-top:18px;">
+                <div class="input-row">
+                    <label for="projectName">Project name</label>
+                    <input id="projectName" type="text" placeholder="ERP Migration" required>
+                </div>
+                <div class="input-row">
+                    <label for="projectStatus">Status</label>
+                    <select id="projectStatus" style="padding:13px 14px;border-radius:14px;border:1px solid var(--border);background:var(--surface-soft);color:var(--text);font-size:15px;">
+                        <option value="AWAITING">AWAITING</option>
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="COMPLETED">COMPLETED</option>
+                        <option value="CANCELLED">CANCELLED</option>
+                        <option value="FAILED">FAILED</option>
+                    </select>
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Create project</button>
+                    <a class="btn btn-secondary" href="/pages/admin-panel.html#projects">Cancel</a>
+                </div>
+            </form>
+            <div id="formStatus" class="status-box" style="margin-top:14px;"></div>
+        </section>
+    </div>
+</div>
+<script src="/js/auth-pages.js"></script>
+<script>
+    const { authorizedFetch, formatError, getApiBase, getSession, guardPage, readJson, redirectToLogin, setStatus } = window.erpAuth;
+    if (!getSession().accessToken && !getSession().refreshToken) { redirectToLogin(); }
+    else {
+        guardPage(['ADMIN','MOD_PROJECTS']).catch(console.error);
+        document.getElementById('projectForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); setStatus('formStatus','Creating project…','');
+            try {
+                const res = await authorizedFetch(getApiBase()+'/projects',{method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({name:document.getElementById('projectName').value.trim(),status:document.getElementById('projectStatus').value})});
+                const d = await readJson(res); if(!res.ok) throw d;
+                setStatus('formStatus','✓ Project "'+d.name+'" created successfully!','success');
+                e.target.reset();
+            } catch(err){ setStatus('formStatus',formatError(err),'error'); }
+        });
+    }
+</script>
+</body>
+</html>

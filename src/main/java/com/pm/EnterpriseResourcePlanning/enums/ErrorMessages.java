@@ -23,6 +23,7 @@ public enum ErrorMessages {
     USER_IS_DEACTIVATED("The User is Deactivated so action cant be done"),
     ROLE_IS_DEACTIVATED("The Role is Deactivated so cant be used"),
     PROJECT_IS_NOT_ACCESSIBLE("The Project is in Illegal State "),
+    INVALID_DATES("The input Dates are Invalid"),
 
     USER_ALREADY_EXISTS("The User already exists"),
     CONTRACT_CLIENT_ALREADY_EXISTS("The Contract Client Already exists"),
@@ -32,6 +33,7 @@ public enum ErrorMessages {
     ROLE_PERMISSION_ALREADY_EXISTS("The Role Permission Already exists"),
     PRODUCT_SALES_ALREADY_EXISTS("The Product Sales Already exists"),
     USER_ROLE_ALREADY_EXISTS("The User Role Already exists"),
+    USER_PROJECT_ALREADY_EXISTS("The User Project Already exists"),
 
     WRONG_CREDENTIALS("The Credentials are Wrong");
 

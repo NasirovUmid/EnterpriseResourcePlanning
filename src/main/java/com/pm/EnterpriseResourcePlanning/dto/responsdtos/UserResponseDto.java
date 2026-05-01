@@ -8,7 +8,6 @@ public record UserResponseDto(
         UUID id,
         String fullName,
         String username,
-        String password,
         String phone,
         UserStatus status
 ) {

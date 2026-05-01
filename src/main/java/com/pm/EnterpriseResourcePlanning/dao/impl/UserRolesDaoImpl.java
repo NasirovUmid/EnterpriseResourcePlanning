@@ -34,4 +34,9 @@ public class UserRolesDaoImpl implements UserRolesDao {
     public List<RolesEntity> findRolesByUserId(UUID userId) {
         return userRoleRepository.findRolesByUserId(userId);
     }
+
+    @Override
+    public List<String> findAllAuthoritiesByUserId(UUID userId) {
+        return userRoleRepository.findAllAuthoritiesByUserId(userId);
+    }
 }

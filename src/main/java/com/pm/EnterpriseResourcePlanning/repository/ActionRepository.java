@@ -14,12 +14,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ActionRepository extends JpaRepository<ActionEntity, UUID> {
+public interface ActionRepository extends JpaRepository<ActionEntity, UUID>,CustomActionRepository {
 
 
-    @Query(value = """
-            INSERT INTO ActionEntity (name) VALUES (:name)""")
-    Optional<ActionEntity> saveAction(@Param("name") String name);
 
     @Transactional(readOnly = true)
     Page<ActionEntity> findAll(Pageable pageable);
@@ -31,5 +28,5 @@ public interface ActionRepository extends JpaRepository<ActionEntity, UUID> {
 
     @Query(value = """
             select ae from ActionEntity ae where ae.id = :id""")
-    Optional<ActionEntity> getActionById(@Param("actionid") UUID id);
+    Optional<ActionEntity> getActionById(@Param("id") UUID id);
 }

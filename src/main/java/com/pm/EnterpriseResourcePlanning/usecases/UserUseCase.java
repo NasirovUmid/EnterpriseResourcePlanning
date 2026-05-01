@@ -1,8 +1,8 @@
 package com.pm.EnterpriseResourcePlanning.usecases;
 
-import com.pm.EnterpriseResourcePlanning.dao.impl.RoleDaoImpl;
-import com.pm.EnterpriseResourcePlanning.datasource.impl.UserDataSourceImpl;
-import com.pm.EnterpriseResourcePlanning.datasource.impl.UserRoleDataSourceImpl;
+import com.pm.EnterpriseResourcePlanning.dao.RoleDao;
+import com.pm.EnterpriseResourcePlanning.datasource.UserDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.UserRoleDataSource;
 import com.pm.EnterpriseResourcePlanning.dto.filters.UserFilterDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.UserRequestDto;
@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -33,11 +34,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserUseCase {
 
-    private final UserDataSourceImpl userDataSource;
+    private final UserDataSource userDataSource;
     private final AvatarUseCase avatarUseCase;
-    private final UserRoleDataSourceImpl userRoleDataSource;
-    private final RoleDaoImpl roleDao;
+    private final UserRoleDataSource userRoleDataSource;
+    private final RoleDao roleDao;
 
+    @Transactional
     public UserResponseDto createUser(UserRequestDto userRequestDto, MultipartFile avatar) throws IOException {
 
         if (userDataSource.existsByUsername(userRequestDto.username())) {
@@ -51,6 +53,7 @@ public class UserUseCase {
         return responseDto;
     }
 
+    @Transactional(readOnly = true)
     public Page<UserResponseDto> getUsersPage(int page, int size, UserFilterDto userFilterDto, String sort) {
 
         Specification<UserEntity> specification = UserSpecifications.build(userFilterDto.fullName(), userFilterDto.username(), userFilterDto.phoneNumber(), userFilterDto.userStatus());
@@ -58,32 +61,27 @@ public class UserUseCase {
         return userDataSource.getUsersPage(specification, PageRequest.of(page, size, toUserEntitySort(sort)));
     }
 
+    @Transactional
     public void updateUser(@Valid UserUpdateRequestDto userRequestDto, UUID id) {
 
-        if (userRequestDto == null || (userRequestDto.fullName() == null && userRequestDto.phoneNumber() == null &&
-                userRequestDto.password() == null && userRequestDto.avatarId() == null)) {
+        if (userRequestDto == null || (userRequestDto.fullName() == null && userRequestDto.phoneNumber() == null)) {
             throw new RuntimeException();
         }
-        userDataSource.updateUser(id, userRequestDto.fullName(), userRequestDto.password(), userRequestDto.avatarId());
+        userDataSource.updateUser(id, userRequestDto.fullName(), userRequestDto.phoneNumber());
     }
 
+    @Transactional(readOnly = true)
     public UserResponseDto getUserById(UUID id) {
 
         return userDataSource.getUserById(id);
     }
 
+    @Transactional
     public void deactivateUser(UUID id) {
         userDataSource.deactivateUser(id);
     }
 
-    public boolean checkUser(UUID id, String moduleName, String actionName) {
-
-        if (userDataSource.getUserById(id).status().equals(UserStatus.DEACTIVATED)) {
-            throw new IllegalStateException(ErrorMessages.USER_IS_DEACTIVATED, id);
-        }
-        return userDataSource.checkAccess(id, moduleName, actionName);
-    }
-
+    @Transactional
     public void connectUserToRole(@Valid IntermediateRequestDto userRoleRequestDto) {
 
         if (roleDao.getRoleById(userRoleRequestDto.uuid1()).getStatus().equals(RoleStatus.DEACTIVATED)) {
@@ -103,6 +101,7 @@ public class UserUseCase {
         userRoleDataSource.saveUserRole(userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
     }
 
+    @Transactional
     public void deleteUserRoleLink(@Valid IntermediateRequestDto userRoleRequestDto) {
         userRoleDataSource.removeUserRoleLink(userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
     }
@@ -111,6 +110,7 @@ public class UserUseCase {
         return userRoleDataSource.exists(userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
     }
 
+    @Transactional(readOnly = true)
     public List<RoleResponseDto> getUserRoles(UUID id) {
         return userRoleDataSource.findRolesByUserId(id);
     }

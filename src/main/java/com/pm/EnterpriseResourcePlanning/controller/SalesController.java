@@ -50,13 +50,6 @@ public class SalesController {
 
     }
 
-    @GetMapping("/products-exist")
-    public ResponseEntity<Void> exists(@Valid @RequestBody IntermediateRequestDto requestDto) {
-
-        boolean doesExist = salesUseCase.exists(requestDto);
-        return doesExist ? ResponseEntity.ok().build() : ResponseEntity.status(401).build();
-    }
-
     @GetMapping("/products/{id}")
     public List<ProductResponseDto> getSalesProducts(@PathVariable(name = "id")UUID id){
         return salesUseCase.getSalesProducts(id);

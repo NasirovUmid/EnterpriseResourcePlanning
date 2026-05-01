@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -30,8 +31,8 @@ public class ActionDataSourceImpl extends MessageAlertDataSource implements Acti
     }
 
     @Override
-    public Page<ActionResponseDto> getActionPage(Pageable pageable) {
-        return execute(() -> actionDao.getActionPage(pageable).map(actionMapper::toDto));
+    public List<ActionResponseDto> getActionPage() {
+        return execute(() -> actionDao.getActionPage().stream().map(actionMapper::toDto).toList());
     }
 
     @Override

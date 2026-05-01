@@ -45,19 +45,40 @@ public class AvatarCustomRepositoryImpl implements AvatarCustomRepository {
 
     @Override
     public Optional<AvatarEntity> getAvatarById(UUID id) {
-        return dsl.select(tableName)
+        var record = dsl.select(tableName.fields())
                 .from(tableName)
                 .where(avatarField.eq(id))
-                .fetchOptionalInto(AvatarEntity.class);
+                .fetchOne();
+
+        if (record == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new AvatarEntity(
+                record.get(avatarField),
+                record.get(urlField),
+                record.get(userField)
+        ));
+
     }
 
     @Override
     public Optional<AvatarEntity> getAvatarByUserId(UUID userId) {
 
-        return dsl.select(tableName)
+        var record = dsl.select(tableName.fields())
                 .from(tableName)
                 .where(userField.eq(userId))
-                .fetchOptionalInto(AvatarEntity.class);
+                .fetchOne();
+
+        if (record == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new AvatarEntity(
+                record.get(avatarField),
+                record.get(urlField),
+                record.get(userField)
+        ));
 
     }
 }

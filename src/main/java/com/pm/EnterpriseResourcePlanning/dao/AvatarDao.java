@@ -16,4 +16,5 @@ public interface AvatarDao {
 
     AvatarEntity getAvatarById(UUID id);
 
+    AvatarEntity getAvatarByUserId(UUID userId);
 }

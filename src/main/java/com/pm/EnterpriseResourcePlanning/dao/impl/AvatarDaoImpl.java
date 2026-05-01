@@ -37,4 +37,9 @@ public class AvatarDaoImpl implements AvatarDao {
     public AvatarEntity getAvatarById(UUID id) {
         return repository.getAvatarById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.AVATAR_NOT_FOUND, id));
     }
+
+    @Override
+    public AvatarEntity getAvatarByUserId(UUID userId) {
+        return repository.getAvatarByUserId(userId).orElseThrow(() -> new NotFoundException(ErrorMessages.AVATAR_NOT_FOUND, userId));
+    }
 }

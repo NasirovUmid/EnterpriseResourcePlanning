@@ -36,15 +36,9 @@ public class UserDataSourceImpl extends MessageAlertDataSource implements UserDa
     public Page<UserResponseDto> getUsersPage(Specification<UserEntity> specification, Pageable pageable) {
         return execute(() -> userDao.getUsersPage(specification, pageable).map(userMapper::toDto));
     }
-
     @Override
-    public boolean checkAccess(UUID userId, String moduleName, String actionName) {
-        return execute(() -> userDao.checkAccess(userId, moduleName, actionName));
-    }
-
-    @Override
-    public void updateUser(UUID id, String fullName, String password, UUID avatarId) {
-        execute(() -> userDao.updateUser(id, fullName, password, avatarId));
+    public void updateUser(UUID id, String fullName, String phoneNumber) {
+        execute(() -> userDao.updateUser(id, fullName, phoneNumber));
     }
 
     @Override
@@ -65,5 +59,10 @@ public class UserDataSourceImpl extends MessageAlertDataSource implements UserDa
     @Override
     public UserResponseDto findUserEntitiesByUsername(String username) {
         return execute(() -> userMapper.toDto(userDao.findUserByUsername(username)));
+    }
+
+    @Override
+    public void updateUserPassword(UUID id, String password) {
+        execute(() -> userDao.updateUserPassword(id, password));
     }
 }

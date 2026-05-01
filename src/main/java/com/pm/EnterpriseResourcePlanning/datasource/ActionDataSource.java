@@ -4,13 +4,14 @@ import com.pm.EnterpriseResourcePlanning.dto.responsdtos.ActionResponseDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ActionDataSource {
 
     ActionResponseDto saveAction(String name);
 
-    Page<ActionResponseDto> getActionPage(Pageable pageable);
+    List<ActionResponseDto> getActionPage();
 
     void updateAction(String name, UUID id);
 

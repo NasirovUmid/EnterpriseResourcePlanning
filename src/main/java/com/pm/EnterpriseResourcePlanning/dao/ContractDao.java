@@ -16,6 +16,8 @@ public interface ContractDao {
 
     void updateContracts(Double amount, Instant startDate, Instant enddate, UUID id);
 
+    void deleteContract(UUID id);
+
     ContractsEntity getContractById(UUID id);
 
     boolean existsByContractNumber(String contractNumber);

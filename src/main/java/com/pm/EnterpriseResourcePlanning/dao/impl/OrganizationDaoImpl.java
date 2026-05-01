@@ -17,11 +17,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrganizationDaoImpl implements OrganizationDao {
 
-    private OrganizationRepository repository;
+    private final OrganizationRepository repository;
 
     @Override
     public OrganizationEntity saveOrganization(String name, String inn, String address) {
-        return repository.saveOrganization(name, inn, address).orElseThrow(RuntimeException::new);
+        return repository.save(name, inn, address).orElseThrow(RuntimeException::new);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class OrganizationDaoImpl implements OrganizationDao {
 
     @Override
     public OrganizationEntity getOrganizationById(UUID id) {
-        return repository.getOrganizationById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.ORGANIZATION_NOT_FOUND,id));
+        return repository.getOrganizationById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.ORGANIZATION_NOT_FOUND, id));
     }
 
     @Override

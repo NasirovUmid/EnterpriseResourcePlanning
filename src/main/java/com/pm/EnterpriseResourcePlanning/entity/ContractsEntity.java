@@ -1,12 +1,8 @@
 package com.pm.EnterpriseResourcePlanning.entity;
 
 import com.pm.EnterpriseResourcePlanning.utils.FullAuditEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -14,6 +10,10 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
+@Builder
+@Table(name = "contracts")
+@NoArgsConstructor
+@AllArgsConstructor
 public class ContractsEntity extends FullAuditEntity {
 
     @Id

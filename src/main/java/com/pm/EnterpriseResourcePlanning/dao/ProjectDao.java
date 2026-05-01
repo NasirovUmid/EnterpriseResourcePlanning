@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ProjectDao {
@@ -16,7 +17,7 @@ public interface ProjectDao {
 
     Page<ProjectEntity> getProjectPage(Specification<ProjectEntity> specification, Pageable pageable);
 
-    ProjectEntity saveProject(String name, ProjectStatus projectStatus);
+    ProjectEntity saveProject(String name);
 
     void updateProject(String name, ProjectStatus status, UUID id);
 

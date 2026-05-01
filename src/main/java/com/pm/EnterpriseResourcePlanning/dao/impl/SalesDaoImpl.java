@@ -22,8 +22,8 @@ public class SalesDaoImpl implements SalesDao {
     private final SalesRepository repository;
 
     @Override
-    public SalesEntity saveSales(ContractsEntity contracts, Double totalprice, Instant date, SalesStatus status) {
-        return repository.saveSales(contracts, totalprice, date, status).orElseThrow(RuntimeException::new);
+    public SalesEntity saveSales(UUID contractId, Double totalprice, Instant date, SalesStatus status) {
+        return repository.saveSales(contractId, totalprice, date, status).orElseThrow(RuntimeException::new);
     }
 
     @Override
@@ -33,7 +33,7 @@ public class SalesDaoImpl implements SalesDao {
 
     @Override
     public SalesEntity getSalesById(UUID id) {
-        return repository.getSalesById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.SALES_NOT_FOUND,id));
+        return repository.findSalesEntityById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.SALES_NOT_FOUND, id));
     }
 
     @Override

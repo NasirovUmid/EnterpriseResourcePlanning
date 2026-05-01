@@ -28,18 +28,17 @@ public interface PermissionRepository extends JpaRepository<PermissionEntity, UU
     List<String> findAllPermissionNamesByUserId(@Param("userId") UUID userId);
 
     @Query(value = """
-            insert into PermissionEntity (name,module,action) values (:name,:module,:action)""")
-    Optional<PermissionEntity> savePermission(@Param("name") String name, @Param("module") ModuleEntity module, @Param("action") ActionEntity action);
+            insert into PermissionEntity (name,moduleId,actionId) values (:name,:module,:action)""")
+    Optional<PermissionEntity> savePermission(@Param("name") String name, @Param("module") UUID module, @Param("action") UUID action);
 
     @Transactional(readOnly = true)
     Page<PermissionEntity> findAll(Specification<PermissionEntity> specification, Pageable pageable);
 
     @Modifying
     @Query(value = """
-            update PermissionEntity pe set pe.name = :name, pe.module = :module , pe.action = :action where pe.id = :id""")
-    void updatePermission(@Param("name") String name, @Param("module") ModuleEntity module,@Param("action") ActionEntity action, @Param("id") UUID id);
+            update PermissionEntity pe set pe.name = :name, pe.moduleId = :module , pe.actionId = :action where pe.id = :id""")
+    void updatePermission(@Param("name") String name, @Param("module") UUID moduleId,@Param("action") UUID actionId, @Param("id") UUID id);
 
-    @Query(value = """
-            select pe from PermissionEntity pe where pe.id = :id""")
-    Optional<PermissionEntity> getPermissionById(@Param("id") UUID id);
+
+    Optional<PermissionEntity> findPermissionEntityById(UUID id);
 }

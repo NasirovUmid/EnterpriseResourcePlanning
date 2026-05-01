@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 public record ProjectRequestDto(
         @NotNull @NotBlank
         String name,
-        @NotNull @NotBlank
+        @NotNull
         ProjectStatus status
-) {
+){
 }

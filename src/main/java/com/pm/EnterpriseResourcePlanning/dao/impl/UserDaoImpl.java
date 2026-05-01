@@ -21,17 +21,12 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public UserEntity saveUser(String fullName, String name, String password, String phone) {
-        return repository.saveUser(fullName, name, password,  phone).orElseThrow(RuntimeException::new);
+        return repository.saveUser(fullName, name, password, phone).orElseThrow(RuntimeException::new);
     }
 
     @Override
-    public boolean checkAccess(UUID userId, String moduleName, String actionName) {
-        return repository.checkAccess(userId, moduleName, actionName);
-    }
-
-    @Override
-    public void updateUser(UUID id, String fullName, String password, UUID avatarId) {
-        repository.updateUser(id, fullName, password, avatarId);
+    public void updateUser(UUID id, String fullName,String phoneNumber) {
+        repository.updateUser(id, fullName,phoneNumber);
     }
 
     @Override
@@ -57,6 +52,11 @@ public class UserDaoImpl implements UserDao {
     @Override
     public UserEntity findUserByUsername(String username) {
         return repository.findUserEntityByUsername(username).orElseThrow(() -> new NotFoundException(ErrorMessages.USER_NOT_FOUND, username));
+    }
+
+    @Override
+    public void updateUserPassword(UUID id, String password) {
+        repository.updateUserPassword(id, password);
     }
 
 

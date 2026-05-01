@@ -1,8 +1,9 @@
 package com.pm.EnterpriseResourcePlanning.usecases;
 
 import com.pm.EnterpriseResourcePlanning.configuration.CustomUserDetails;
-import com.pm.EnterpriseResourcePlanning.datasource.impl.RefreshTokenDataSourceImpl;
-import com.pm.EnterpriseResourcePlanning.datasource.impl.UserDataSourceImpl;
+import com.pm.EnterpriseResourcePlanning.dao.impl.UserDaoImpl;
+import com.pm.EnterpriseResourcePlanning.datasource.RefreshTokenDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.UserDataSource;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.AuthPasswordRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.AuthRefreshTokenDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.AuthRequestDto;
@@ -10,8 +11,8 @@ import com.pm.EnterpriseResourcePlanning.dto.requestdtos.UserRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.AuthUserResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.JwtAuthenticationResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.UserResponseDto;
-import com.pm.EnterpriseResourcePlanning.entity.AvatarEntity;
 import com.pm.EnterpriseResourcePlanning.entity.RefreshTokenEntity;
+import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
 import com.pm.EnterpriseResourcePlanning.enums.TokenType;
 import com.pm.EnterpriseResourcePlanning.exceptions.AlreadyExistsException;
@@ -39,10 +40,11 @@ import java.util.Base64;
 public class AuthUseCase {
 
     private final JwtUseCase jwtUseCase;
-    private final UserDataSourceImpl userDataSource;
+    private final UserDataSource userDataSource;
+    private final UserDaoImpl userDao;
     private final AvatarUseCase avatarUseCase;
     private final PasswordEncoder passwordEncoder;
-    private final RefreshTokenDataSourceImpl refreshTokenDataSource;
+    private final RefreshTokenDataSource refreshTokenDataSource;
 
     @Transactional
     public AuthUserResponseDto register(@Valid UserRequestDto userRequestDto, MultipartFile avatar) throws IOException, NoSuchAlgorithmException {
@@ -65,17 +67,17 @@ public class AuthUseCase {
     @Transactional
     public AuthUserResponseDto login(AuthRequestDto authRequestDto) throws NoSuchAlgorithmException {
 
-        UserResponseDto userResponseDto = userDataSource.findUserEntitiesByUsername(authRequestDto.email());
+        UserEntity user = userDao.findUserByUsername(authRequestDto.email());
 
-        if (!passwordEncoder.matches(authRequestDto.password(), userResponseDto.password())) {
+        if (!passwordEncoder.matches(authRequestDto.password(), user.getPassword())) {
             throw new BadCredentialsException(ErrorMessages.WRONG_CREDENTIALS, authRequestDto.email());
         }
 
         JwtAuthenticationResponseDto responseDto = jwtUseCase.generateAuthToken(authRequestDto.email());
 
-        refreshTokenDataSource.saveRefreshToken(userResponseDto.id(), hashing(responseDto.refreshToken()), Instant.now().plus(Duration.ofHours(5)));
+        refreshTokenDataSource.saveRefreshToken(user.getId(), hashing(responseDto.refreshToken()), Instant.now().plus(Duration.ofHours(5)));
 
-        return new AuthUserResponseDto(userResponseDto.id(), responseDto.accessToken(), responseDto.refreshToken());
+        return new AuthUserResponseDto(user.getId(), responseDto.accessToken(), responseDto.refreshToken());
     }
 
     @Transactional
@@ -89,7 +91,7 @@ public class AuthUseCase {
 
         String email = jwtUseCase.getEmailFromToken(refreshTokenDto.refreshToken());
 
-        if (!jwtUseCase.extractClaims(refreshTokenDto.refreshToken()).get("type").equals(TokenType.REFRESH)) {
+        if (!jwtUseCase.extractClaims(refreshTokenDto.refreshToken()).get("type").equals(TokenType.REFRESH.name())) {
             throw new BadCredentialsException(ErrorMessages.WRONG_CREDENTIALS, email);
         }
 
@@ -119,17 +121,17 @@ public class AuthUseCase {
             throw new NotFoundException(ErrorMessages.USER_NOT_FOUND, passwordRequestDto.oldPassword());
         }
 
-        UserResponseDto user1 = userDataSource.getUserById(user.getId());
+        UserEntity user1 = userDao.getUserById(user.getId());
 
-        if (!passwordEncoder.matches(passwordRequestDto.oldPassword(), user1.password())) {
-            throw new BadCredentialsException(ErrorMessages.WRONG_CREDENTIALS, user1.username());
+        if (!passwordEncoder.matches(passwordRequestDto.oldPassword(), user1.getPassword())) {
+            throw new BadCredentialsException(ErrorMessages.WRONG_CREDENTIALS, user1.getUsername());
         }
 
-        userDataSource.updateUser(user1.id(), null, passwordEncoder.encode(passwordRequestDto.newPassword()), null);
-        refreshTokenDataSource.deleteAllByUserId(user1.id());
+        userDataSource.updateUserPassword(user1.getId(), passwordEncoder.encode(passwordRequestDto.newPassword()));
+        refreshTokenDataSource.deleteAllByUserId(user1.getId());
 
-        JwtAuthenticationResponseDto responseDto = jwtUseCase.generateAuthToken(user1.username());
-        refreshTokenDataSource.saveRefreshToken(user1.id(), hashing(responseDto.refreshToken()), Instant.now().plus(Duration.ofHours(5)));
+        JwtAuthenticationResponseDto responseDto = jwtUseCase.generateAuthToken(user1.getUsername());
+        refreshTokenDataSource.saveRefreshToken(user1.getId(), hashing(responseDto.refreshToken()), Instant.now().plus(Duration.ofHours(5)));
 
         return responseDto;
     }

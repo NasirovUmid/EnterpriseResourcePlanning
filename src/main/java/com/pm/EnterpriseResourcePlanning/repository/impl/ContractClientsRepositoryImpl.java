@@ -8,6 +8,7 @@ import org.jooq.Field;
 import org.jooq.Table;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,6 +54,12 @@ public class ContractClientsRepositoryImpl implements ContractClientsRepository 
                 .from(cTable)
                 .join(tableName).on(field("contracts.id").eq(tableName.field(contractField)))
                 .where(clientsField.eq(clientId))
-                .fetchInto(ContractsEntity.class);
+                .fetch(record -> ContractsEntity.builder()
+                        .id(record.get("id", UUID.class))
+                        .contractNumber(record.get("contract_number", String.class))
+                        .amount(record.get("amount", Double.class))
+                        .startDate(record.get("start_date", Instant.class))
+                        .endDate(record.get("end_date", Instant.class))
+                        .build());
     }
 }

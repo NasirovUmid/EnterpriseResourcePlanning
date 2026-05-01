@@ -10,12 +10,12 @@ import java.util.UUID;
 public interface AvatarDataSource {
 
 
-    AvatarEntity saveAvatar(String url,UUID userId);
-
-    Page<AvatarResponseDto> getAvatarsPage(Pageable pageable);
+    AvatarEntity saveAvatar(String url, UUID userId);
 
     void updateAvatar(String url, UUID id);
 
     AvatarResponseDto getAvatarById(UUID id);
+
+    AvatarResponseDto getAvatarByUserId(UUID id);
 
 }

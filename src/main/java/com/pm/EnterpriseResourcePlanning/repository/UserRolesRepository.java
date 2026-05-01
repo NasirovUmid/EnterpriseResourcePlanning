@@ -15,4 +15,6 @@ public interface UserRolesRepository {
     void removeUserRoleLink(UUID userId, UUID roleId);
 
     List<RolesEntity> findRolesByUserId(UUID userId);
+
+    List<String> findAllAuthoritiesByUserId(UUID userId);
 }

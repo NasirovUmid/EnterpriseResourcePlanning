@@ -5,12 +5,14 @@ import com.pm.EnterpriseResourcePlanning.dao.impl.RoleDaoImpl;
 import com.pm.EnterpriseResourcePlanning.datasource.RoleDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.helper.MessageAlertDataSource;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.RoleResponseDto;
+import com.pm.EnterpriseResourcePlanning.entity.RolesEntity;
 import com.pm.EnterpriseResourcePlanning.enums.RoleStatus;
 import com.pm.EnterpriseResourcePlanning.mapper.RoleMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -31,8 +33,8 @@ public class RolesDataSourceImpl extends MessageAlertDataSource implements RoleD
     }
 
     @Override
-    public Page<RoleResponseDto> getRolePages(Pageable pageable) {
-        return execute(() -> roleDao.getRolePages(pageable).map(roleMapper::toDto));
+    public List<RoleResponseDto> getRolePages() {
+        return execute(() -> roleDao.getRolePages().stream().map(roleMapper::toDto).toList());
     }
 
     @Override
@@ -41,7 +43,8 @@ public class RolesDataSourceImpl extends MessageAlertDataSource implements RoleD
     }
 
     @Override
-    public RoleResponseDto getRoleById(UUID id) {
-        return execute(() -> roleMapper.toDto(roleDao.getRoleById(id)));
+    public RolesEntity getRoleById(UUID id) {
+        return roleDao.getRoleById(id);
     }
+
 }

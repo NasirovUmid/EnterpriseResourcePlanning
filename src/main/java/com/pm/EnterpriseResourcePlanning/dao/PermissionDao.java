@@ -14,11 +14,11 @@ public interface PermissionDao {
 
     List<String> findAllPermissionNamesByUserId(UUID userId);
 
-    PermissionEntity savePermission(String name, ModuleEntity module, ActionEntity action);
+    PermissionEntity savePermission(String name, UUID module, UUID action);
 
     Page<PermissionEntity> getPermissionPage(Specification<PermissionEntity> specification, Pageable pageable);
 
-    void updatePermission(String name, ModuleEntity module, ActionEntity action, UUID id);
+    void updatePermission(String name, UUID module, UUID action, UUID id);
 
     PermissionEntity getPermissionById(UUID id);
 

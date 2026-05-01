@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Product — ERP</title>
+    <link rel="stylesheet" href="/css/auth-pages.css">
+</head>
+<body>
+<div class="page-shell">
+    <div class="topbar">
+        <div class="brand-block">
+            <h1>Create Product</h1>
+            <p style="color:var(--muted);margin:6px 0 0;">Add a new product to the catalogue.</p>
+        </div>
+        <div class="nav-links">
+            <a class="nav-pill" href="/pages/admin-panel.html#products">← Back to Products</a>
+            <a class="nav-pill" href="/index.html">Home</a>
+        </div>
+    </div>
+    <div style="max-width:520px;margin:0 auto;">
+        <section class="panel">
+            <span class="eyebrow">New Product</span>
+            <h2 class="section-title" style="margin-top:10px;">Product details</h2>
+            <form id="productForm" class="form-grid" style="margin-top:18px;">
+                <div class="input-row"><label for="productName">Product name</label><input id="productName" type="text" placeholder="Premium Subscription" required minlength="5" maxlength="25"></div>
+                <div class="input-row"><label for="productPrice">Price</label><input id="productPrice" type="number" step="0.01" placeholder="99.99" required min="0"></div>
+                <div class="input-row"><label for="productUnit">Unit quantity</label><input id="productUnit" type="number" placeholder="1" required min="1"></div>
+                <div class="input-row"><label for="productStatus">Status</label>
+                    <select id="productStatus" style="padding:13px 14px;border-radius:14px;border:1px solid var(--border);background:var(--surface-soft);color:var(--text);">
+                        <option value="ACTIVE">ACTIVE</option><option value="DRAFT">DRAFT</option>
+                        <option value="OUT_OF_STOCK">OUT_OF_STOCK</option><option value="ARCHIVED">ARCHIVED</option>
+                    </select>
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-primary" type="submit">Create product</button>
+                    <a class="btn btn-secondary" href="/pages/admin-panel.html#products">Cancel</a>
+                </div>
+            </form>
+            <div id="formStatus" class="status-box" style="margin-top:14px;"></div>
+        </section>
+    </div>
+</div>
+<script src="/js/auth-pages.js"></script>
+<script>
+    const { authorizedFetch, formatError, getApiBase, getSession, guardPage, readJson, redirectToLogin, setStatus } = window.erpAuth;
+    if (!getSession().accessToken && !getSession().refreshToken) { redirectToLogin(); }
+    else {
+        guardPage(['ADMIN','MOD_PRODUCTS']).catch(console.error);
+        document.getElementById('productForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); setStatus('formStatus','Creating…','');
+            try {
+                const res = await authorizedFetch(getApiBase()+'/products',{method:'POST',headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({name:document.getElementById('productName').value.trim(),
+                        price:parseFloat(document.getElementById('productPrice').value),
+                        unit:parseInt(document.getElementById('productUnit').value,10),
+                        productStatus:document.getElementById('productStatus').value||null})});
+                const d = await readJson(res); if(!res.ok) throw d;
+                setStatus('formStatus','✓ Product "'+d.name+'" created!','success');
+                e.target.reset();
+            } catch(err){ setStatus('formStatus',formatError(err),'error'); }
+        });
+    }
+</script>
+</body>
+</html>

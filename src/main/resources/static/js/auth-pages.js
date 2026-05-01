@@ -3,7 +3,8 @@
         access: "erp_access_token",
         refresh: "erp_refresh_token",
         userId: "erp_user_id",
-        email: "erp_user_email"
+        email: "erp_user_email",
+        roles: "erp_user_roles"
     };
 
     function parseJwt(token) {
@@ -58,7 +59,32 @@
         };
     }
 
+    function getStoredRoles() {
+        const raw = localStorage.getItem(STORAGE_KEYS.roles);
+        if (!raw) {
+            return [];
+        }
+
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed.map(normalizeRole).filter(Boolean) : [];
+        } catch (error) {
+            console.error("Roles parse error", error);
+            return [];
+        }
+    }
+
+    function saveRoles(roles) {
+        localStorage.setItem(STORAGE_KEYS.roles, JSON.stringify(Array.isArray(roles) ? roles.map(normalizeRole).filter(Boolean) : []));
+    }
+
+    function normalizeRole(roleName) {
+        return String(roleName || "").toUpperCase().replace(/^ROLE_/, "");
+    }
+
     function saveSession(payload, extra) {
+        localStorage.removeItem(STORAGE_KEYS.roles);
+
         if (payload && payload.accessToken) {
             localStorage.setItem(STORAGE_KEYS.access, payload.accessToken);
             const claims = parseJwt(payload.accessToken);
@@ -78,7 +104,9 @@
     }
 
     function clearSession() {
-        Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+        Object.values(STORAGE_KEYS).forEach(function (key) {
+            localStorage.removeItem(key);
+        });
     }
 
     function redirectToLogin() {
@@ -145,13 +173,13 @@
             headers.set("Authorization", "Bearer " + session.accessToken);
         }
 
-        let response = await fetch(url, {...options, headers});
+        let response = await fetch(url, Object.assign({}, options, {headers: headers}));
 
         if (shouldTryRefresh(response) && session.refreshToken) {
             await refreshSession();
             const nextSession = getSession();
             headers.set("Authorization", "Bearer " + nextSession.accessToken);
-            response = await fetch(url, {...options, headers});
+            response = await fetch(url, Object.assign({}, options, {headers: headers}));
         }
 
         if (shouldTryRefresh(response)) {
@@ -207,12 +235,20 @@
             expiresAt: claims && claims.exp ? new Date(claims.exp * 1000).toLocaleString() : "Not available"
         };
 
-        Object.entries(mapping).forEach(([name, value]) => {
+        Object.entries(mapping).forEach(function (entry) {
+            const name = entry[0];
+            const value = entry[1];
             const element = document.getElementById(prefix + "-" + name);
             if (element) {
                 element.textContent = value;
             }
         });
+
+        const rolesElement = document.getElementById(prefix + "-roles");
+        if (rolesElement) {
+            const roles = getStoredRoles();
+            rolesElement.textContent = roles.length ? roles.join(", ") : "Not loaded";
+        }
     }
 
     function getUserIdFromPage() {
@@ -231,21 +267,129 @@
         return getSession().userId;
     }
 
+    function hasRole(roleName) {
+        return getStoredRoles().includes(roleName);
+    }
+
+    function hasAnyRole(roleNames) {
+        return roleNames.some(hasRole);
+    }
+
+    async function fetchCurrentRoles() {
+        const userId = getUserIdFromPage();
+        if (!userId) {
+            throw new Error("User ID is required to load roles");
+        }
+
+        const response = await authorizedFetch(getApiBase() + "/users/" + encodeURIComponent(userId) + "/roles", {
+            method: "GET"
+        });
+        const payload = await readJson(response);
+
+        if (!response.ok) {
+            throw payload || new Error("Unable to load user roles");
+        }
+
+        const roles = Array.isArray(payload)
+            ? payload.map(function (role) { return role && role.name ? normalizeRole(role.name) : ""; }).filter(Boolean)
+            : [];
+
+        saveRoles(roles);
+        return roles;
+    }
+
+    async function ensureRolesLoaded() {
+        const roles = getStoredRoles();
+        if (roles.length > 0) {
+            return roles;
+        }
+
+        return fetchCurrentRoles();
+    }
+
+    function applyRoleVisibility(roles) {
+        document.querySelectorAll("[data-visible-for]").forEach(function (element) {
+            const required = (element.getAttribute("data-visible-for") || "")
+                .split(",")
+                .map(function (value) { return normalizeRole(value.trim()); })
+                .filter(Boolean);
+
+            if (required.length === 0) {
+                element.hidden = false;
+                return;
+            }
+
+            element.hidden = !required.some(function (role) {
+                return roles.includes(role);
+            });
+        });
+
+        document.querySelectorAll("[data-hidden-for]").forEach(function (element) {
+            const forbidden = (element.getAttribute("data-hidden-for") || "")
+                .split(",")
+                .map(function (value) { return normalizeRole(value.trim()); })
+                .filter(Boolean);
+
+            if (forbidden.some(function (role) { return roles.includes(role); })) {
+                element.hidden = true;
+            }
+        });
+    }
+
+    async function initializeRoleView() {
+        const roles = await ensureRolesLoaded();
+        applyRoleVisibility(roles);
+        return roles;
+    }
+
+    function hideRoleControlledElementsUntilLoaded() {
+        document.querySelectorAll("[data-visible-for]").forEach(function (element) {
+            element.hidden = true;
+        });
+    }
+
+    async function guardPage(roleNames, fallbackPath) {
+        const roles = await initializeRoleView();
+        if (!roleNames || roleNames.length === 0) {
+            return roles;
+        }
+
+        if (!roleNames.some(function (role) { return roles.includes(role); })) {
+            window.location.href = fallbackPath || "/pages/profile.html";
+            throw new Error("Access denied for this page");
+        }
+
+        return roles;
+    }
+
     window.erpAuth = {
         STORAGE_KEYS,
+        applyRoleVisibility,
         authorizedFetch,
         clearSession,
+        ensureRolesLoaded,
+        fetchCurrentRoles,
         fillSessionSummary,
         formatError,
         getApiBase,
         getSession,
+        getStoredRoles,
         getUserIdFromPage,
+        guardPage,
+        hasAnyRole,
+        hasRole,
+        hideRoleControlledElementsUntilLoaded,
+        initializeRoleView,
+        logoutSession,
         parseJwt,
         readJson,
         redirectToLogin,
         refreshSession,
+        normalizeRole,
+        saveRoles,
         saveSession,
-        setStatus,
-        logoutSession
+        setStatus
     };
+
+    hideRoleControlledElementsUntilLoaded();
 })();
