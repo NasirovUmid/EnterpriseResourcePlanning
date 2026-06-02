@@ -22,4 +22,6 @@ public interface ProjectDataSource {
     void updateProject(String name, ProjectStatus status, UUID id);
 
     ProjectResponseDto getProjectById(UUID id);
+
+    void cancelProject(UUID id);
 }

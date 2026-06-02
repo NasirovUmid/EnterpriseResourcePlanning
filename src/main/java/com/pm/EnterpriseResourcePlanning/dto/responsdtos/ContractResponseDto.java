@@ -6,7 +6,7 @@ import java.util.UUID;
 public record ContractResponseDto(
         UUID id,
         String contractNumber,
-        Double price,
+        Double amount,
         Instant startDate,
         Instant endDate
 ) {

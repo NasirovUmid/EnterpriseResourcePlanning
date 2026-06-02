@@ -24,26 +24,19 @@
 
     function formatError(error) {
         if (!error) {
-            return "Unknown error";
+            return "The request could not be completed. Please review the information and try again.";
         }
 
         if (typeof error === "string") {
             return error;
         }
 
-        if (error.message) {
-            return error.message;
+        const detail = error.detail || error.message || error.title;
+        if (detail) {
+            return detail;
         }
 
-        if (Array.isArray(error.errors) && error.errors.length > 0) {
-            return error.errors.join(", ");
-        }
-
-        try {
-            return JSON.stringify(error);
-        } catch (jsonError) {
-            return "Unexpected response";
-        }
+        return "The request could not be completed. Please review the information and try again.";
     }
 
     function getApiBase() {
@@ -229,10 +222,10 @@
         const claims = parseJwt(session.accessToken);
 
         const mapping = {
-            email: session.email || (claims && claims.sub) || "Not available",
-            userId: session.userId || "Not saved",
-            tokenType: (claims && claims.type) || "Not available",
-            expiresAt: claims && claims.exp ? new Date(claims.exp * 1000).toLocaleString() : "Not available"
+            email: session.email || (claims && claims.sub) || "-",
+            userId: session.userId || "-",
+            tokenType: (claims && claims.type) || "-",
+            expiresAt: claims && claims.exp ? new Date(claims.exp * 1000).toLocaleString() : "-"
         };
 
         Object.entries(mapping).forEach(function (entry) {
@@ -247,7 +240,7 @@
         const rolesElement = document.getElementById(prefix + "-roles");
         if (rolesElement) {
             const roles = getStoredRoles();
-            rolesElement.textContent = roles.length ? roles.join(", ") : "Not loaded";
+            rolesElement.textContent = roles.length ? roles.join(", ") : "-";
         }
     }
 

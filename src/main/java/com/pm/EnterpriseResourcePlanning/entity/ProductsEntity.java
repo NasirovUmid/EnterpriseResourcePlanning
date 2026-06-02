@@ -4,7 +4,10 @@ import com.pm.EnterpriseResourcePlanning.enums.ProductStatus;
 import com.pm.EnterpriseResourcePlanning.utils.FullAuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -30,7 +33,21 @@ public class ProductsEntity extends FullAuditEntity {
     @Column(nullable = false)
     private Integer unit;
 
-    @Column(nullable = true)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(columnDefinition = "product_status")
     private ProductStatus status;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProductsEntity that = (ProductsEntity) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

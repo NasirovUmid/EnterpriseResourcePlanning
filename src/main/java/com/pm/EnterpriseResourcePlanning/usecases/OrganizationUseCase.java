@@ -39,7 +39,7 @@ public class OrganizationUseCase {
     private final UserOrganizationDataSource userOrganizationDataSource;
     private final UserDao userDao;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public OrganizationResponseDto createOrganization(@Valid OrganizationRequestDto organizationRequestDto) {
 
         if (organizationDataSource.existsByInn(organizationRequestDto.inn())) {
@@ -63,12 +63,12 @@ public class OrganizationUseCase {
         return organizationDataSource.getOrganizationsPage(specification, pageable);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateOrganization(UUID id, OrganizationUpdateRequestDto organizationUpdateRequestDto) {
         organizationDataSource.updateOrganization(organizationUpdateRequestDto.name(), organizationUpdateRequestDto.address(), id);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void createUserOrganizationLink(@Valid IntermediateRequestDto userOrganizationRequestDto) {
 
         if (userDao.getUserById(userOrganizationRequestDto.uuid()).getUserStatus().equals(UserStatus.DEACTIVATED)) {
@@ -86,7 +86,7 @@ public class OrganizationUseCase {
         return userOrganizationDataSource.exists(userOrganizationRequestDto.uuid(), userOrganizationRequestDto.uuid1());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void removeUserOrganizationLink(@Valid IntermediateRequestDto userOrganizationRequestDto) {
         userOrganizationDataSource.removeUserOrganizationLink(userOrganizationRequestDto.uuid(), userOrganizationRequestDto.uuid1());
     }
@@ -107,6 +107,10 @@ public class OrganizationUseCase {
             return Sort.by("name").ascending();
         }
         String[] parts = sort.split(",");
+        if (parts.length < 2) {
+            return Sort.by("name").ascending();
+        }
+
         String field = parts[0];
         String direction = parts[1];
 

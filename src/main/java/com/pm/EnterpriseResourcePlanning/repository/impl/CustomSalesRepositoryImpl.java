@@ -12,6 +12,8 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,7 +37,7 @@ public class CustomSalesRepositoryImpl implements CustomSalesRepository {
 
         var record = dsl.insertInto(tableName)
                 .columns(contractIdField, totalPriceField, dateField, statusField)
-                .values(contractId, totalprice, date, DSL.field("?::sales_status", status))
+                .values(contractId, totalprice, date, DSL.field("?::sales_status", status.name()))
                 .returning(idField, contractIdField, totalPriceField, dateField, statusField)
                 .fetchOne();
 
@@ -47,7 +49,7 @@ public class CustomSalesRepositoryImpl implements CustomSalesRepository {
                 .id(record.get(idField))
                 .contractId(record.get(contractIdField))
                 .totalPrice(record.get(totalPriceField))
-                .date(record.get(dateField))
+                .date(record.get("date", OffsetDateTime.class).toInstant())
                 .status(SalesStatus.valueOf(String.valueOf(record.get(statusField))))
                 .build());
     }

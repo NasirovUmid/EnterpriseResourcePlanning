@@ -4,6 +4,8 @@ import com.pm.EnterpriseResourcePlanning.enums.SalesStatus;
 import com.pm.EnterpriseResourcePlanning.utils.FullAuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -31,6 +33,9 @@ public class SalesEntity extends FullAuditEntity {
     @Column(nullable = false)
     private Instant date;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(columnDefinition = "sales_status")
     private SalesStatus status;
 
 }

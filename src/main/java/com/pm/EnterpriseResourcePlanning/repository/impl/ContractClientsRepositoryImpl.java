@@ -9,6 +9,7 @@ import org.jooq.Table;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,8 +59,8 @@ public class ContractClientsRepositoryImpl implements ContractClientsRepository 
                         .id(record.get("id", UUID.class))
                         .contractNumber(record.get("contract_number", String.class))
                         .amount(record.get("amount", Double.class))
-                        .startDate(record.get("start_date", Instant.class))
-                        .endDate(record.get("end_date", Instant.class))
+                        .startDate(record.get("start_date", OffsetDateTime.class).toInstant())
+                        .endDate(record.get("end_date", OffsetDateTime.class).toInstant())
                         .build());
     }
 }

@@ -19,6 +19,7 @@ public enum ErrorMessages {
     PROJECT_NOT_FOUND("The Project was not found"),
     SALES_NOT_FOUND("The Sales was not found"),
     FILE_NOT_FOUND("The file was not found"),
+    BLACKLIST_NOT_FOUND("The Blacklist was not found"),
 
     USER_IS_DEACTIVATED("The User is Deactivated so action cant be done"),
     ROLE_IS_DEACTIVATED("The Role is Deactivated so cant be used"),

@@ -24,7 +24,7 @@ public class PermissionUseCase {
 
     private final PermissionDataSource dataSource;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public PermissionResponseDto createPermission(@Valid PermissionRequestDto permissionRequestDto) {
 
         return dataSource.savePermission(permissionRequestDto.name(), permissionRequestDto.moduleId(), permissionRequestDto.actionId());
@@ -59,6 +59,7 @@ public class PermissionUseCase {
         return dataSource.getPermissionById(id);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void updatePermission(UUID id, @Valid PermissionUpdateRequestDto updateRequestDto) {
         dataSource.updatePermission(updateRequestDto.name(), updateRequestDto.moduleId(), updateRequestDto.actionId(), id);
     }

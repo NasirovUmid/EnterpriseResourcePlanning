@@ -2,6 +2,7 @@ package com.pm.EnterpriseResourcePlanning.repository.impl;
 
 import com.pm.EnterpriseResourcePlanning.entity.ProductsEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ProductStatus;
+import com.pm.EnterpriseResourcePlanning.repository.CustomProductSalesRepository;
 import com.pm.EnterpriseResourcePlanning.repository.ProductSalesRepository;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -17,20 +18,22 @@ import static org.jooq.impl.DSL.*;
 
 @Repository
 @RequiredArgsConstructor
-public class ProductSalesRepositoryImpl implements ProductSalesRepository {
+public class ProductSalesRepositoryImpl implements CustomProductSalesRepository {
 
     private final DSLContext dsl;
     private final Table<?> tableName = table("product_sales");
+    private final Table<?> pTable = table("products");
     private final Field<UUID> productField = field("product_id", UUID.class);
     private final Field<UUID> salesField = field("sales_id", UUID.class);
-    private final Table<?> pTable = table("products");
+    private final Field<Integer> quantityField = field("quantity", Integer.class);
+    private final Field<Double> priceField = field("total_price", Double.class);
 
     @Transactional
     @Override
-    public void saveProductSales(UUID productId, UUID salesId) {
+    public void saveProductSales(UUID productId, UUID salesId, Integer quantity, Double price) {
         dsl.insertInto(tableName)
-                .columns(productField, salesField)
-                .values(productId, salesId)
+                .columns(productField, salesField, quantityField, priceField)
+                .values(productId, salesId,quantity,price)
                 .execute();
     }
 

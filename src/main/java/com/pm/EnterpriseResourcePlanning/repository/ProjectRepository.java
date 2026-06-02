@@ -35,8 +35,14 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID>, J
     @Modifying
     @Transactional
     @Query(value = """
-            UPDATE projects SET name = coalesce(:name,name),status = coalesce(:status,status) where id = :id""", nativeQuery = true)
+            UPDATE ProjectEntity pe SET pe.name = coalesce(:name,pe.name),pe.status = coalesce(:status,pe.status) where pe.id = :id""")
     void updateProject(@Param("name") String name, @Param("status") ProjectStatus status, @Param("id") UUID id);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+            UPDATE projects SET status = 'CANCELED' where id = :id""", nativeQuery = true)
+    void cancelProject(@Param("id") UUID id);
 
     @Transactional(readOnly = true)
     @Query(value = """

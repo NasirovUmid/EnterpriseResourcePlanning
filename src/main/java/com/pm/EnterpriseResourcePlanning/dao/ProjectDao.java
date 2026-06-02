@@ -23,5 +23,5 @@ public interface ProjectDao {
 
     ProjectEntity getProjectById(UUID id);
 
-
+    void cancelProject(UUID id);
 }

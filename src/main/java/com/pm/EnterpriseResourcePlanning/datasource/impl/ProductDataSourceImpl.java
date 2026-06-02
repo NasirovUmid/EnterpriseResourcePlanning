@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -38,8 +39,8 @@ public class ProductDataSourceImpl extends MessageAlertDataSource implements Pro
     }
 
     @Override
-    public void updateProduct(String name, Double price, Integer unit, ProductStatus status,UUID id) {
-        execute(() -> productDao.updateProduct(name, price, unit, status,id));
+    public void updateProduct(String name, Double price, Integer unit, ProductStatus status, UUID id) {
+        execute(() -> productDao.updateProduct(name, price, unit, status, id));
     }
 
     @Override

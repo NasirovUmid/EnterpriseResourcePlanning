@@ -35,7 +35,7 @@ public class ProjectUseCase {
     private final ProjectOrganizationDataSource projectOrganizationDataSource;
     private final UserProjectDataSource userProjectDataSource;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ProjectResponseDto createProject(ProjectRequestDto projectRequestDto) {
 
         return projectDataSource.saveProject(projectRequestDto.name());
@@ -68,7 +68,7 @@ public class ProjectUseCase {
 
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void linkProjectOrganization(@Valid IntermediateRequestDto projectOrganizationDto) {
 
         if (!projectDataSource.getProjectById(projectOrganizationDto.uuid()).status().equals(ProjectStatus.AWAITING) &&
@@ -87,7 +87,7 @@ public class ProjectUseCase {
         return projectOrganizationDataSource.exists(projectRequestDto.uuid(), projectRequestDto.uuid1());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteProjectOrganizationLink(@Valid IntermediateRequestDto projectOrganizationRequestDto) {
         projectOrganizationDataSource.removeProjectOrganizationLink(projectOrganizationRequestDto.uuid(), projectOrganizationRequestDto.uuid1());
     }
@@ -102,21 +102,7 @@ public class ProjectUseCase {
         return projectOrganizationDataSource.getOrganizationProjects(id);
     }
 
-    private Sort toProjectEntitySort(String sort) {
-        if (sort == null || !sort.contains(",")) {
-            return Sort.by("fullName").ascending(); // Сортировка по умолчанию
-        }
-
-        String[] parts = sort.split(",");
-        String field = parts[0]; // поле: "fullName", "price", "unit"
-        String direction = parts[1]; // направление: "asc" или "desc"
-
-        return direction.equalsIgnoreCase("desc")
-                ? Sort.by(field).descending()
-                : Sort.by(field).ascending();
-    }
-
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void saveUserProject(@Valid IntermediateRequestDto requestDto) {
 
         if (exists(requestDto)) {
@@ -130,14 +116,34 @@ public class ProjectUseCase {
         return userProjectDataSource.existsUserProject(requestDto.uuid(), requestDto.uuid1());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void removeUserProject(@Valid IntermediateRequestDto requestDto) {
         userProjectDataSource.removeUserProject(requestDto.uuid(), requestDto.uuid1());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelProject(UUID id) {
+        projectDataSource.cancelProject(id);
     }
 
     @Transactional(readOnly = true)
     public List<ProjectResponseDto> getUserProjects(UUID id) {
         return userProjectDataSource.getUserProjects(id);
     }
+
+    private Sort toProjectEntitySort(String sort) {
+        if (sort == null || !sort.contains(",")) {
+            return Sort.by("fullName").ascending(); // Сортировка по умолчанию
+        }
+
+        String[] parts = sort.split(",");
+        String field = parts[0];
+        String direction = parts[1];
+
+        return direction.equalsIgnoreCase("desc")
+                ? Sort.by(field).descending()
+                : Sort.by(field).ascending();
+    }
+
 }
 

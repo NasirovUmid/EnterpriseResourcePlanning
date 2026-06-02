@@ -39,7 +39,7 @@ public class UserUseCase {
     private final UserRoleDataSource userRoleDataSource;
     private final RoleDao roleDao;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public UserResponseDto createUser(UserRequestDto userRequestDto, MultipartFile avatar) throws IOException {
 
         if (userDataSource.existsByUsername(userRequestDto.username())) {
@@ -61,7 +61,7 @@ public class UserUseCase {
         return userDataSource.getUsersPage(specification, PageRequest.of(page, size, toUserEntitySort(sort)));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateUser(@Valid UserUpdateRequestDto userRequestDto, UUID id) {
 
         if (userRequestDto == null || (userRequestDto.fullName() == null && userRequestDto.phoneNumber() == null)) {
@@ -76,12 +76,12 @@ public class UserUseCase {
         return userDataSource.getUserById(id);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deactivateUser(UUID id) {
         userDataSource.deactivateUser(id);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void connectUserToRole(@Valid IntermediateRequestDto userRoleRequestDto) {
 
         if (roleDao.getRoleById(userRoleRequestDto.uuid1()).getStatus().equals(RoleStatus.DEACTIVATED)) {
@@ -101,7 +101,7 @@ public class UserUseCase {
         userRoleDataSource.saveUserRole(userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteUserRoleLink(@Valid IntermediateRequestDto userRoleRequestDto) {
         userRoleDataSource.removeUserRoleLink(userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
     }

@@ -16,5 +16,7 @@ public interface RoleDao {
 
     void deactivateRole(UUID id);
 
+    void updateRole(UUID id, String name, RoleStatus status);
+
     RolesEntity getRoleById(UUID id);
 }

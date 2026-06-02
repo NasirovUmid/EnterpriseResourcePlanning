@@ -11,7 +11,7 @@
     <div class="topbar">
         <div class="brand-block">
             <h1>Project Workspace</h1>
-            <p>For `ADMIN` and `MOD_PROJECT`: create projects and review the list connected to your user domain.</p>
+            <p>Create projects and review the project scope available to you.</p>
         </div>
         <div class="nav-links">
             <a class="nav-pill" href="/index.html">Home</a>
@@ -25,7 +25,7 @@
         <section class="panel">
             <span class="eyebrow">Create Project</span>
             <h2 class="section-title">New project</h2>
-            <p class="subtle">This section is shown only for `ADMIN` and `MOD_PROJECT` and sends `POST /projects`.</p>
+            <p class="subtle">Start a new project and set its initial status.</p>
 
             <form id="projectForm" class="form-grid">
                 <div class="input-row">
@@ -49,7 +49,7 @@
         <section class="panel">
             <span class="eyebrow">Project List</span>
             <h2 class="section-title">My project scope</h2>
-            <p class="subtle">For now the list is based on `GET /projects/users-projects/{id}`, which stays safe for role-based UI without relying on a global admin feed.</p>
+            <p class="subtle">Projects connected to your workspace appear here.</p>
 
             <div id="projectsStatus" class="status-box">Loading project scope...</div>
             <div id="projectsList" class="collection-list">
@@ -63,7 +63,6 @@
 <script>
     const {
         authorizedFetch,
-        fillSessionSummary,
         formatError,
         getApiBase,
         getSession,
@@ -86,8 +85,7 @@
                 <article class="collection-item">
                     <h3>${project.name || "Unnamed project"}</h3>
                     <div class="inline-meta">
-                        <span class="tag">${project.status || "Unknown status"}</span>
-                        <span class="tag">${project.id || "No id"}</span>
+                        <span class="tag">${project.status || "-"}</span>
                     </div>
                 </article>
             `;
@@ -100,7 +98,7 @@
         try {
             const userId = getUserIdFromPage();
             if (!userId) {
-                throw new Error("User ID is required");
+                throw new Error("Projects unavailable");
             }
 
             const response = await authorizedFetch(getApiBase() + "/projects/users-projects/" + encodeURIComponent(userId), {
@@ -113,7 +111,7 @@
             }
 
             renderProjects(payload);
-            setStatus("projectsStatus", "Project scope loaded successfully.", "success");
+            setStatus("projectsStatus", "Projects loaded.", "success");
         } catch (error) {
             setStatus("projectsStatus", formatError(error), "error");
         }
@@ -154,12 +152,9 @@
     } else {
         guardPage(["ADMIN", "MOD_PROJECTS"])
             .then(function () {
-                fillSessionSummary("session");
                 return loadProjects();
             })
-            .catch(function (error) {
-                console.error(error);
-            });
+            .catch(function () {});
     }
 </script>
 </body>

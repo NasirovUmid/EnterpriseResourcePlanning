@@ -1,6 +1,7 @@
 package com.pm.EnterpriseResourcePlanning.usecases;
 
 import com.pm.EnterpriseResourcePlanning.configuration.CustomUserDetails;
+import com.pm.EnterpriseResourcePlanning.dao.BlackListDao;
 import com.pm.EnterpriseResourcePlanning.dao.impl.UserDaoImpl;
 import com.pm.EnterpriseResourcePlanning.datasource.RefreshTokenDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.UserDataSource;
@@ -11,6 +12,7 @@ import com.pm.EnterpriseResourcePlanning.dto.requestdtos.UserRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.AuthUserResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.JwtAuthenticationResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.UserResponseDto;
+import com.pm.EnterpriseResourcePlanning.entity.BlackListEntity;
 import com.pm.EnterpriseResourcePlanning.entity.RefreshTokenEntity;
 import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
@@ -20,6 +22,7 @@ import com.pm.EnterpriseResourcePlanning.exceptions.BadCredentialsException;
 import com.pm.EnterpriseResourcePlanning.exceptions.NotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +36,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 
 @Service
@@ -42,11 +46,12 @@ public class AuthUseCase {
     private final JwtUseCase jwtUseCase;
     private final UserDataSource userDataSource;
     private final UserDaoImpl userDao;
+    private final BlackListDao blackListDao;
     private final AvatarUseCase avatarUseCase;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenDataSource refreshTokenDataSource;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public AuthUserResponseDto register(@Valid UserRequestDto userRequestDto, MultipartFile avatar) throws IOException, NoSuchAlgorithmException {
 
         if (userDataSource.existsByUsername(userRequestDto.username())) {
@@ -64,13 +69,40 @@ public class AuthUseCase {
         return new AuthUserResponseDto(user.id(), tokens.accessToken(), tokens.refreshToken());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = {BadCredentialsException.class, LockedException.class})
     public AuthUserResponseDto login(AuthRequestDto authRequestDto) throws NoSuchAlgorithmException {
 
         UserEntity user = userDao.findUserByUsername(authRequestDto.email());
 
+        BlackListEntity blackListEntity = blackListDao.findById(user.getId());
+
+        if (blackListEntity != null && blackListEntity.getLockUntil() != null && blackListEntity.getLockUntil().isAfter(Instant.now())) {
+            throw new LockedException("The account is banned. Try again later");
+        }
+
         if (!passwordEncoder.matches(authRequestDto.password(), user.getPassword())) {
+
+            if (blackListEntity == null) {
+
+                blackListDao.save(new BlackListEntity(user.getId(), 1, null));
+
+            } else {
+
+                int newAttemptCount = blackListEntity.getAttemptsCount() + 1;
+                blackListEntity.setAttemptsCount(newAttemptCount);
+
+                if (newAttemptCount >= 3) {
+                    blackListEntity.setLockUntil(Instant.now().plus(15, ChronoUnit.MINUTES));
+                    blackListDao.save(blackListEntity);
+                    throw new LockedException("The account is locked. Try again in 15 minutes");
+                }
+                blackListDao.save(blackListEntity);
+            }
             throw new BadCredentialsException(ErrorMessages.WRONG_CREDENTIALS, authRequestDto.email());
+        }
+
+        if (blackListEntity != null) {
+            blackListDao.deleteById(user.getId());
         }
 
         JwtAuthenticationResponseDto responseDto = jwtUseCase.generateAuthToken(authRequestDto.email());
@@ -80,7 +112,7 @@ public class AuthUseCase {
         return new AuthUserResponseDto(user.getId(), responseDto.accessToken(), responseDto.refreshToken());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public JwtAuthenticationResponseDto refresh(AuthRefreshTokenDto refreshTokenDto) throws NoSuchAlgorithmException {
 
         RefreshTokenEntity refreshToken = refreshTokenDataSource.getRefreshByToken(hashing(refreshTokenDto.refreshToken()));
@@ -104,12 +136,12 @@ public class AuthUseCase {
         return responseDto;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void logOut(AuthRefreshTokenDto refreshTokenDto) throws NoSuchAlgorithmException {
         refreshTokenDataSource.deleteByToken(hashing(refreshTokenDto.refreshToken()));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public JwtAuthenticationResponseDto changePassword(AuthPasswordRequestDto passwordRequestDto) throws NoSuchAlgorithmException {
 
         if (passwordRequestDto.newPassword().equals(passwordRequestDto.oldPassword())) {

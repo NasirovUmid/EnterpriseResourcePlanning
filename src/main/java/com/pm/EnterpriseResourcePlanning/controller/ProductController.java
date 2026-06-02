@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 @RestController
@@ -30,7 +31,7 @@ public class ProductController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_PRODUCTS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_PRODUCTS', 'AUDITOR')")
     public Page<ProductResponseDto> getProductPage(
             @RequestParam(defaultValue = "0", name = "page") int page,
             @RequestParam(defaultValue = "20", name = "size") int size,

@@ -46,4 +46,9 @@ public class ProjectDaoImpl implements ProjectDao {
     public ProjectEntity getProjectById(UUID id) {
         return repository.getProjectById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.PROJECT_NOT_FOUND, id));
     }
+
+    @Override
+    public void cancelProject(UUID id) {
+        repository.cancelProject(id);
+    }
 }

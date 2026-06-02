@@ -2,6 +2,7 @@ package com.pm.EnterpriseResourcePlanning.dao.impl;
 
 import com.pm.EnterpriseResourcePlanning.dao.UserRolesDao;
 import com.pm.EnterpriseResourcePlanning.entity.RolesEntity;
+import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import com.pm.EnterpriseResourcePlanning.repository.impl.UserRoleRepositoryImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,11 @@ public class UserRolesDaoImpl implements UserRolesDao {
     @Override
     public List<RolesEntity> findRolesByUserId(UUID userId) {
         return userRoleRepository.findRolesByUserId(userId);
+    }
+
+    @Override
+    public List<UserEntity> findUsersByRoleId(UUID roleId) {
+        return userRoleRepository.findUsersByRoleId(roleId);
     }
 
     @Override

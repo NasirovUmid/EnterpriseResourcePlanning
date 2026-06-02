@@ -9,6 +9,7 @@ import org.jooq.Table;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,8 +45,8 @@ public class CustomContractRepositoryImpl implements CustomContractRepository {
                 .id(record.get(idField))
                 .contractNumber(record.get(numberField))
                 .amount(record.get(amountField))
-                .startDate(record.get(startField))
-                .endDate(record.get(endField))
+                .startDate(record.get(field("start_date", OffsetDateTime.class)).toInstant())
+                .endDate(record.get(field("end_date", OffsetDateTime.class)).toInstant())
                 .build());
     }
 }

@@ -16,7 +16,7 @@ public class ActionUseCase {
 
     private final ActionDataSource actionDataSource;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ActionResponseDto createAction(ActionRequestDto actionRequestDto) {
         return actionDataSource.saveAction(actionRequestDto.name());
     }
@@ -30,7 +30,7 @@ public class ActionUseCase {
         return actionDataSource.getActionById(id);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateAction(UUID id, String name) {
         actionDataSource.updateAction(name, id);
     }

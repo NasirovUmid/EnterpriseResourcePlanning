@@ -24,7 +24,7 @@
         <section class="panel">
             <span class="eyebrow">Create Account</span>
             <h2 class="section-title">Register page</h2>
-            <p class="subtle">The form follows the current `UserRequestDto` validation rules.</p>
+            <p class="subtle">Create an employee account with verified contact details.</p>
 
             <form id="registerForm" class="form-grid">
                 <div class="input-row">
@@ -58,20 +58,15 @@
                 </div>
             </form>
 
-            <div id="registerStatus" class="status-box">Ready to create a new ERP user.</div>
+            <div id="registerStatus" class="status-box">Complete the form to create an account.</div>
         </section>
 
         <section class="panel highlight">
-            <span class="eyebrow">What happens next</span>
-            <h2 class="title">Registration also saves your initial session.</h2>
+            <span class="eyebrow">ERP Onboarding</span>
+            <h2 class="title">A single account for daily operations.</h2>
             <p class="subtle">
-                On success the page stores `accessToken`, `refreshToken`, and `userId`, then redirects to the profile screen.
+                After approval, your workspace access is managed by assigned roles.
             </p>
-            <ul class="note-list">
-                <li>The current backend controller expects multipart field names `data` and `image`.</li>
-                <li>The phone number must match the Uzbekistan format from validation.</li>
-                <li>Profile loading works immediately after registration because the response includes `userId`.</li>
-            </ul>
         </section>
     </div>
 </div>
@@ -107,7 +102,7 @@
             }
 
             saveSession(result, {userId: result.userId});
-            setStatus("registerStatus", "Registration completed. Redirecting to profile page...", "success");
+            setStatus("registerStatus", "Registration completed. Redirecting...", "success");
 
             setTimeout(() => {
                 window.location.href = "/pages/profile.html";

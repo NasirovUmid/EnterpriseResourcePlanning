@@ -41,6 +41,7 @@ public class UserController {
     }
 
     @PostMapping("/roles")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MOD_ROLES')")
     public ResponseEntity<Void> connectUserToRole(@Valid @RequestBody IntermediateRequestDto userRoleRequestDto) {
 
         userUseCase.connectUserToRole(userRoleRequestDto);
@@ -49,13 +50,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}/roles")
-    @PreAuthorize("hasAnyRole('ADMIN', 'AUDITOR', 'MOD_PROJECTS', 'MOD_ORGANIZATIONS', 'MOD_USERS', 'MOD_PRODUCTS', 'MOD_CONTRACTS') or #id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MOD_ROLES', 'AUDITOR', 'MOD_PROJECTS', 'MOD_ORGANIZATIONS', 'MOD_USERS', 'MOD_PRODUCTS', 'MOD_CONTRACTS') or #id == authentication.principal.id")
     public List<RoleResponseDto> getUserRoles(@PathVariable(name = "id") UUID id) {
         return userUseCase.getUserRoles(id);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_USERS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_USERS', 'MOD_ROLES', 'AUDITOR')")
     public Page<UserResponseDto> getUsersPage(@RequestParam(defaultValue = "0", name = "page") int page,
                                               @RequestParam(defaultValue = "20", name = "size") int size,
                                               @RequestParam(defaultValue = "fullName,asc", name = "sort") String sort,
@@ -73,7 +74,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'AUDITOR', 'MOD_USERS') or #id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AUDITOR', 'MOD_USERS', 'MOD_ROLES') or #id == authentication.principal.id")
     @GetMapping("/{id}")
     public UserResponseDto getUserById(@PathVariable(name = "id") UUID id) {
 
@@ -93,7 +94,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_USERS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_ROLES')")
     @DeleteMapping("/link")
     public ResponseEntity<Void> deleteUserRoleLink(@Valid @RequestBody IntermediateRequestDto userRoleRequestDto) {
 

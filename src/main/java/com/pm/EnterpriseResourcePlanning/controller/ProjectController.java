@@ -9,6 +9,7 @@ import com.pm.EnterpriseResourcePlanning.enums.ProjectStatus;
 import com.pm.EnterpriseResourcePlanning.usecases.ProjectUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/projects")
 @RequiredArgsConstructor
@@ -42,7 +44,7 @@ public class ProjectController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS', 'AUDITOR')")
     public Page<ProjectResponseDto> getProjectsPage(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size,
@@ -51,6 +53,16 @@ public class ProjectController {
             @RequestParam(required = false, defaultValue = "name,asc") String sort) {
 
         return projectUseCase.getProjectsPage(page, size, name, status, sort);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelProject(@PathVariable(name = "id") UUID id) {
+
+        log.info("-----------------------------------------{}", id);
+
+        projectUseCase.cancelProject(id);
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}")

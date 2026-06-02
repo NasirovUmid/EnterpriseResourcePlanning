@@ -43,7 +43,7 @@ public class ContractController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS', 'AUDITOR')")
     public Page<ContractResponseDto> getContractsPage(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size,
@@ -54,13 +54,13 @@ public class ContractController {
     }
 
     @GetMapping("/organizations/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS','MOD_ORGANIZATIONS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS','MOD_ORGANIZATIONS', 'AUDITOR')")
     public List<ContractResponseDto> getOrganizationsContracts(@PathVariable(name = "id") UUID id) {
         return contractUseCase.getOrganizationsContracts(id);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS', 'AUDITOR')")
     public ContractResponseDto getContractById(@PathVariable(name = "id") UUID id) {
         return contractUseCase.getContractById(id);
     }
@@ -104,13 +104,13 @@ public class ContractController {
     }
 
     @GetMapping("/projects/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS','MOD_PROJECTS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS','MOD_PROJECTS', 'AUDITOR')")
     public List<ContractResponseDto> getContractsByProjectId(@PathVariable(name = "id") UUID id) {
         return contractUseCase.getContractsByProjectId(id);
     }
 
     @GetMapping("/contracts/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS', 'AUDITOR')")
     public List<ProjectResponseDto> getProjectsByContractId(@PathVariable(name = "id") UUID id) {
         return contractUseCase.getProjectsByContractId(id);
     }

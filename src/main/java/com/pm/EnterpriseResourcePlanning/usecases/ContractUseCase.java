@@ -35,7 +35,7 @@ public class ContractUseCase {
     private final OrganizationContractDataSource organizationContractDataSource;
     private final ContractProjectDataSource contractProjectDataSource;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ContractResponseDto createContract(@Valid ContractsRequestDto contractsRequestDto) {
 
         if (contractDataSource.existsByContractNumber(contractsRequestDto.contractNumber())) {
@@ -60,7 +60,7 @@ public class ContractUseCase {
         return contractDataSource.getContractsPage(specification, pageable);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void linkOrganizationContract(@Valid IntermediateRequestDto organizationContractRequestDto) {
 
         if (organizationContractDataSource.exists(organizationContractRequestDto.uuid(), organizationContractRequestDto.uuid1())) {
@@ -73,7 +73,7 @@ public class ContractUseCase {
         return organizationContractDataSource.exists(organizationContractRequestDto.uuid(), organizationContractRequestDto.uuid1());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteOrganizationContract(IntermediateRequestDto organizationContractRequestDto) {
         organizationContractDataSource.removeOrganizationContractLink(organizationContractRequestDto.uuid(), organizationContractRequestDto.uuid1());
     }
@@ -88,7 +88,7 @@ public class ContractUseCase {
         return contractDataSource.getContractById(id);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateContract(UUID id, ContractUpdateRequestDto requestDto) {
         if (requestDto.startDate() != null && requestDto.endDate() != null &&
                 (requestDto.startDate().isAfter(requestDto.endDate()) || requestDto.startDate().equals(requestDto.endDate()))) {
@@ -98,7 +98,7 @@ public class ContractUseCase {
         contractDataSource.updateContracts(requestDto.amount(), requestDto.startDate(), requestDto.endDate(), id);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteContract(UUID id) {
         contractDataSource.deleteContract(id);
     }
@@ -118,12 +118,12 @@ public class ContractUseCase {
                 Sort.by(field).ascending();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void saveContractProject(@Valid IntermediateRequestDto requestDto) {
         contractProjectDataSource.saveContractProjects(requestDto.uuid(), requestDto.uuid1());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteContractProject(@Valid IntermediateRequestDto requestDto) {
         contractProjectDataSource.deleteContractProjects(requestDto.uuid(), requestDto.uuid1());
     }

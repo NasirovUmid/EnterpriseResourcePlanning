@@ -23,14 +23,10 @@
     <div class="hero-grid">
         <section class="panel highlight">
             <span class="eyebrow">ERP Login</span>
-            <h2 class="title">Clean access flow for your team workspace.</h2>
+            <h2 class="title">Secure access for your team workspace.</h2>
             <p class="subtle">
-                This page stores the access token, refresh token, user email, and an optional user ID for the profile page.
+                Sign in with your company account to continue.
             </p>
-            <ul class="note-list">
-                <li>If you already know your user ID, save it here once and the profile page can load immediately.</li>
-                <li>If the backend later returns `userId` on login, this page will use it automatically.</li>
-            </ul>
         </section>
 
         <section class="panel">
@@ -46,12 +42,7 @@
 
                 <div class="input-row">
                     <label for="password">Password</label>
-                    <input id="password" name="password" type="password" placeholder="Minimum 8 characters" required>
-                </div>
-
-                <div class="input-row">
-                    <label for="knownUserId">User ID for profile (optional)</label>
-                    <input id="knownUserId" name="knownUserId" type="text" placeholder="UUID, if you already know it">
+                    <input id="password" name="password" type="password" minlength="8" maxlength="20" placeholder="8 to 20 characters" required>
                 </div>
 
                 <div class="button-row">
@@ -60,46 +51,20 @@
                 </div>
             </form>
 
-            <div id="loginStatus" class="status-box">Waiting for login request.</div>
+            <div id="loginStatus" class="status-box">Enter your credentials to continue.</div>
         </section>
     </div>
-
-    <section class="card" style="margin-top: 22px;">
-        <span class="eyebrow">Session Snapshot</span>
-        <h2 class="section-title">Current stored session</h2>
-        <div class="stats-grid">
-            <div class="stat">
-                <strong>Email</strong>
-                <span id="session-email">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>User ID</strong>
-                <span id="session-userId">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>Token Type</strong>
-                <span id="session-tokenType">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>Expires At</strong>
-                <span id="session-expiresAt">Not available</span>
-            </div>
-        </div>
-    </section>
 </div>
 
 <script src="/js/auth-pages.js"></script>
 <script>
-    const {formatError, getApiBase, readJson, saveSession, setStatus, fillSessionSummary} = window.erpAuth;
-
-    fillSessionSummary("session");
+    const {formatError, getApiBase, readJson, saveSession, setStatus} = window.erpAuth;
 
     document.getElementById("loginForm").addEventListener("submit", async function (event) {
         event.preventDefault();
         setStatus("loginStatus", "Logging in...", "");
 
         try {
-            const knownUserId = document.getElementById("knownUserId").value.trim();
             const response = await fetch(getApiBase() + "/auth/login", {
                 method: "POST",
                 headers: {
@@ -116,9 +81,8 @@
                 throw payload;
             }
 
-            saveSession(payload, {userId: knownUserId});
-            fillSessionSummary("session");
-            setStatus("loginStatus", "Login completed. Redirecting to profile page...", "success");
+            saveSession(payload);
+            setStatus("loginStatus", "Login successful. Redirecting...", "success");
 
             setTimeout(() => {
                 window.location.href = "/pages/profile.html";

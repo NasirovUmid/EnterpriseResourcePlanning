@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -45,6 +46,16 @@ public class GlobalHandlerException {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 ApiProblem.of(HttpStatus.BAD_REQUEST, badCredentialsException.getMessage(), httpServletRequest, badCredentialsException,
                         null, badCredentialsException.getEntityEmail())
+        );
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ProblemDetail> handleLockedException(LockedException lockedException, HttpServletRequest httpServletRequest) {
+
+        log.error("LOCKED EXCEPTION = {}", lockedException.getMessage());
+
+        return ResponseEntity.status(HttpStatus.LOCKED).body(
+                ApiProblem.of(HttpStatus.LOCKED, lockedException.getMessage(), httpServletRequest, lockedException, null, null)
         );
     }
 

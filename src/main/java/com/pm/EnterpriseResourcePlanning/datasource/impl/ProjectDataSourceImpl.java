@@ -56,4 +56,9 @@ public class ProjectDataSourceImpl extends MessageAlertDataSource implements Pro
     public ProjectResponseDto getProjectById(UUID id) {
         return execute(() -> projectMapper.toDto(projectDao.getProjectById(id)));
     }
+
+    @Override
+    public void cancelProject(UUID id) {
+        execute(() -> projectDao.cancelProject(id));
+    }
 }

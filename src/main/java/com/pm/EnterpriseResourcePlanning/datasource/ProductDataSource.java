@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ProductDataSource {
@@ -15,7 +16,7 @@ public interface ProductDataSource {
 
     Page<ProductResponseDto> getProductsPage(Pageable pageable, Specification<ProductsEntity> specification);
 
-    void updateProduct(String name, Double price, Integer unit, ProductStatus status,UUID id);
+    void updateProduct(String name, Double price, Integer unit, ProductStatus status, UUID id);
 
     void updateProductUnit(Integer amount, UUID id);
 

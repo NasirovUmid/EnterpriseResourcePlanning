@@ -25,7 +25,7 @@
     <section class="panel">
         <span class="eyebrow">Organizations</span>
         <h2 class="section-title">Organizations connected to your account</h2>
-        <p class="subtle">This page calls `GET /organizations/user-organization/{id}` with automatic token refresh.</p>
+        <p class="subtle">Review the organizations currently connected to your account.</p>
 
         <div id="organizationsStatus" class="status-box">Loading your organizations...</div>
         <div id="organizationsList" class="collection-list">
@@ -33,35 +33,12 @@
         </div>
     </section>
 
-    <section class="card" style="margin-top: 22px;">
-        <span class="eyebrow">Session Details</span>
-        <h2 class="section-title">Stored auth context</h2>
-        <div class="stats-grid">
-            <div class="stat">
-                <strong>Email</strong>
-                <span id="session-email">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>User ID</strong>
-                <span id="session-userId">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>Roles</strong>
-                <span id="session-roles">Not loaded</span>
-            </div>
-            <div class="stat">
-                <strong>Expires At</strong>
-                <span id="session-expiresAt">Not available</span>
-            </div>
-        </div>
-    </section>
 </div>
 
 <script src="/js/auth-pages.js"></script>
 <script>
     const {
         authorizedFetch,
-        fillSessionSummary,
         formatError,
         getApiBase,
         getSession,
@@ -85,9 +62,6 @@
                     <h3>${organization.name || "Unnamed organization"}</h3>
                     <p>INN: ${organization.inn || "-"}</p>
                     <p>Address: ${organization.address || "-"}</p>
-                    <div class="inline-meta">
-                        <span class="tag">${organization.id || "No id"}</span>
-                    </div>
                 </a>
             `;
         }).join("");
@@ -100,7 +74,7 @@
             await initializeRoleView();
             const userId = getUserIdFromPage();
             if (!userId) {
-                throw new Error("User ID is required");
+                throw new Error("Organizations unavailable");
             }
 
             const response = await authorizedFetch(getApiBase() + "/organizations/user-organization/" + encodeURIComponent(userId), {
@@ -113,14 +87,11 @@
             }
 
             renderOrganizations(payload);
-            fillSessionSummary("session");
-            setStatus("organizationsStatus", "Organizations loaded successfully.", "success");
+            setStatus("organizationsStatus", "Organizations loaded.", "success");
         } catch (error) {
             setStatus("organizationsStatus", formatError(error), "error");
         }
     }
-
-    fillSessionSummary("session");
 
     if (!getSession().accessToken && !getSession().refreshToken) {
         redirectToLogin();

@@ -1,6 +1,7 @@
 package com.pm.EnterpriseResourcePlanning.dao;
 
 import com.pm.EnterpriseResourcePlanning.entity.RolesEntity;
+import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +15,8 @@ public interface UserRolesDao {
     void removeUserRoleLink(UUID userId, UUID roleId);
 
     List<RolesEntity> findRolesByUserId(UUID userId);
+
+    List<UserEntity> findUsersByRoleId(UUID roleId);
 
     List<String> findAllAuthoritiesByUserId(UUID userId);
 

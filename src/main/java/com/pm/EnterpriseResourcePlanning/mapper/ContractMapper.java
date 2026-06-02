@@ -11,6 +11,5 @@ public interface ContractMapper {
 
     ContractsEntity toEntity(ContractsRequestDto contractsRequestDto);
 
-    @Mapping(source = "amount", target = "price")
     ContractResponseDto toDto(ContractsEntity contractsEntity);
 }

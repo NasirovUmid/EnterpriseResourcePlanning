@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,15 +26,15 @@ public interface ProductRepository extends JpaRepository<ProductsEntity, UUID>, 
     @Modifying
     @Transactional
     @Query(value = """
-            UPDATE products SET name = coalesce(:name,name), price = coalesce(:price,price), 
-                        unit = coalesce(:unit,unit),status = coalesce(:status,status) where id = :id""", nativeQuery = true)
+            UPDATE ProductsEntity pe SET pe.name = coalesce(:name,pe.name), pe.price = coalesce(:price,pe.price), 
+                        pe.unit = coalesce(:unit,pe.unit),pe.status = coalesce(:status,pe.status) where pe.id = :id""")
     int updateProduct(@Param("name") String name, @Param("price") Double price, @Param("unit") Integer unit,
                       @Param("status") ProductStatus status, @Param("id") UUID id);
 
     @Modifying
     @Query(value = """
             UPDATE products SET unit = unit - :amount WHERE id = :id AND unit >= :amount""", nativeQuery = true)
-    int updateProductUnit(@Param("amount") Integer amount, @Param("id") UUID id);
+    void updateProductUnit(@Param("amount") Integer amount, @Param("id") UUID id);
 
     @Transactional(readOnly = true)
     Optional<ProductsEntity> findProductsEntityById(UUID id);

@@ -76,8 +76,8 @@
             buildDeactivate: function(payload) {
                 return {
                     url: "/projects/" + encodeURIComponent(payload.id),
-                    method: "PUT",
-                    body: {name: payload.name, status: "CANCELLED"},
+                    method: "DELETE",
+                    body: null,
                     message: "Project cancelled."
                 };
             },
@@ -167,10 +167,10 @@
             label: "Contract",
             endpoint: "/contracts/",
             title: "contractNumber",
-            fields: ["id", "contractNumber", "price", "startDate", "endDate"],
+            fields: ["id", "contractNumber", "amount", "startDate", "endDate"],
             updateRoles: ["ADMIN", "MOD_CONTRACTS"],
             form: [
-                {name: "price", label: "Amount", type: "number", step: "0.01"},
+                {name: "amount", label: "amount", type: "number", step: "0.01"},
                 {name: "startDate", label: "Start date", type: "datetime-local"},
                 {name: "endDate", label: "End date", type: "datetime-local"}
             ],
@@ -190,6 +190,48 @@
                 };
             },
             deactivateLabel: "Delete contract"
+        },
+        sale: {
+            label: "Sale",
+            endpoint: "/sales/",
+            title: "id",
+            fields: ["id", "totalPrice", "date", "status"],
+            updateRoles: ["ADMIN", "MOD_SALES"],
+            form: [
+                {name: "status", label: "Status", type: "select", options: ["PENDING_PAYMENT", "PAID", "CANCELLED"]}
+            ],
+            buildUpdate: function(payload, form) {
+                return {
+                    status: cleanValue(form.status.value)
+                };
+            }
+        },
+        role: {
+            label: "Role",
+            endpoint: "/roles/",
+            title: "name",
+            fields: ["id", "name", "status"],
+            updateRoles: ["ADMIN", "MOD_ROLES"],
+            form: [
+                {name: "name", label: "Name", type: "text"},
+                {name: "status", label: "Status", type: "select", options: ["ACTIVE", "DEACTIVATED"]}
+            ],
+            buildUpdate: function(payload, form) {
+                return {
+                    name: cleanValue(form.name.value) || payload.name,
+                    status: cleanValue(form.status.value)
+                };
+            },
+            buildDeactivate: function(payload) {
+                return {
+                    url: "/roles/" + encodeURIComponent(payload.id),
+                    method: "DELETE",
+                    body: null,
+                    message: "Role deactivated."
+                };
+            },
+            deactivateLabel: "Deactivate role",
+            deactivateRoles: ["ADMIN", "MOD_ROLES"]
         }
     };
 
@@ -248,7 +290,7 @@
 
     function canDeactivate(payload, config) {
         const session = getSession();
-        return hasAnyRole(["ADMIN"]) && config.buildDeactivate && session.userId !== payload.id;
+        return hasAnyRole(config.deactivateRoles || ["ADMIN"]) && config.buildDeactivate && session.userId !== payload.id;
     }
 
     function appendQuery(url, params) {
@@ -294,6 +336,16 @@
             return url;
         }
 
+        if (type === "product") {
+            let url = "/sales/products?page=0&size=10&sort=name,asc";
+            if (query.length >= 5) url = appendQuery(url, {name: query});
+            return url;
+        }
+
+        if (type === "role") {
+            return "/roles";
+        }
+
         return "";
     }
 
@@ -310,11 +362,18 @@
         ],
         user: [
             {key: "organizations", label: "Organizations", target: "organization", title: "name", roles: ["ADMIN", "MOD_ORGANIZATIONS"], listUrl: function(p) { return "/organizations/user-organization/" + encodeURIComponent(p.id); }, linkUrl: "/organizations/users", body: function(p, item) { return {uuid: p.id, uuid1: item.id}; }},
-            {key: "projects", label: "Projects", target: "project", title: "name", roles: ["ADMIN", "MOD_PROJECTS"], listUrl: function(p) { return "/projects/users-projects/" + encodeURIComponent(p.id); }, linkUrl: "/projects/user", body: function(p, item) { return {uuid: p.id, uuid1: item.id}; }}
+            {key: "projects", label: "Projects", target: "project", title: "name", roles: ["ADMIN", "MOD_PROJECTS"], listUrl: function(p) { return "/projects/users-projects/" + encodeURIComponent(p.id); }, linkUrl: "/projects/user", body: function(p, item) { return {uuid: p.id, uuid1: item.id}; }},
+            {key: "roles", label: "Roles", target: "role", title: "name", roles: ["ADMIN", "MOD_ROLES"], listUrl: function(p) { return "/users/" + encodeURIComponent(p.id) + "/roles"; }, linkUrl: "/users/roles", addLabel: "Add role", body: function(p, item) { return {uuid: p.id, uuid1: item.id}; }}
         ],
         contract: [
             {key: "projects", label: "Projects", target: "project", title: "name", roles: ["ADMIN", "MOD_CONTRACTS"], listUrl: function(p) { return "/contracts/contracts/" + encodeURIComponent(p.id); }, linkUrl: "/contracts/projects", body: function(p, item) { return {uuid: p.id, uuid1: item.id}; }},
             {key: "organizations", label: "Organizations", target: "organization", title: "name", roles: ["ADMIN", "MOD_CONTRACTS"], listUrl: null, linkUrl: "/contracts/organizations", body: function(p, item) { return {uuid: item.id, uuid1: p.id}; }}
+        ],
+        sale: [
+            {key: "products", label: "Products", target: "product", title: "name", roles: ["ADMIN", "MOD_SALES"], listUrl: function(p) { return "/sales/products/" + encodeURIComponent(p.id); }, linkUrl: "/sales/products", addLabel: "Add products", quantity: true, body: function(p, item, quantity) { return [{productId: item.id, salesId: p.id, quantity: quantity}]; }}
+        ],
+        role: [
+            {key: "users", label: "Users", target: "user", title: "fullName", roles: ["ADMIN", "MOD_ROLES"], listUrl: function(p) { return "/roles/users/" + encodeURIComponent(p.id); }, linkUrl: "/users/roles", addLabel: "Add user", body: function(p, item) { return {uuid: item.id, uuid1: p.id}; }}
         ]
     };
 
@@ -401,13 +460,14 @@
             const canEdit = relationCanEdit(relation);
             return '<article class="relation-card" data-relation="' + escapeHtml(relation.key) + '">' +
                 '<div class="relation-head"><h3>' + escapeHtml(relation.label) + '</h3>' +
-                (canEdit ? '<button class="btn btn-secondary relation-toggle" type="button" data-relation="' + escapeHtml(relation.key) + '">Add</button>' : '') +
+                (canEdit ? '<button class="btn btn-secondary relation-toggle" type="button" data-relation="' + escapeHtml(relation.key) + '">' + escapeHtml(relation.addLabel || "Add") + '</button>' : '') +
                 '</div>' +
                 '<div id="rel-list-' + escapeHtml(relation.key) + '" class="relation-list"><div class="empty-state">Loading...</div></div>' +
                 (canEdit ? '<div id="rel-add-' + escapeHtml(relation.key) + '" class="relation-add" hidden>' +
                     '<input id="rel-query-' + escapeHtml(relation.key) + '" type="text" placeholder="Type to find a matching item">' +
                     '<button class="btn btn-secondary relation-search" type="button" data-relation="' + escapeHtml(relation.key) + '">Find matching</button>' +
                     '<select id="rel-select-' + escapeHtml(relation.key) + '"><option value="">No items loaded</option></select>' +
+                    (relation.quantity ? '<input id="rel-quantity-' + escapeHtml(relation.key) + '" type="number" min="1" step="1" value="1" placeholder="Quantity">' : '') +
                     '<button class="btn btn-primary relation-save" type="button" data-relation="' + escapeHtml(relation.key) + '">Add selected</button>' +
                 '</div>' : '') +
             '</article>';
@@ -447,10 +507,15 @@
         }
 
         const items = listFromPage(data);
-        select.innerHTML = items.length ? items.map(function(item) {
+        const filteredItems = relation.target === "role" && query
+            ? items.filter(function(item) {
+                return displayName(item, relation.title).toLowerCase().includes(query.toLowerCase());
+            })
+            : items;
+        select.innerHTML = filteredItems.length ? filteredItems.map(function(item) {
             return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(displayName(item, relation.title)) + ' - ' + escapeHtml(item.id) + '</option>';
         }).join("") : '<option value="">No matching items</option>';
-        select.dataset.items = JSON.stringify(items);
+        select.dataset.items = JSON.stringify(filteredItems);
     }
 
     async function sendJson(url, method, body) {
@@ -576,8 +641,15 @@
                 return;
             }
 
+            const quantityInput = relation.quantity ? document.getElementById("rel-quantity-" + relation.key) : null;
+            const quantity = quantityInput ? Number(quantityInput.value) : null;
+            if (quantityInput && (!Number.isInteger(quantity) || quantity < 1)) {
+                setStatus("detailStatus", "Enter a valid product quantity first.", "error");
+                return;
+            }
+
             setStatus("detailStatus", "Adding related item...", "");
-            await sendJson(relation.linkUrl, "POST", relation.body(currentPayload, selected));
+            await sendJson(relation.linkUrl, "POST", relation.body(currentPayload, selected, quantity));
             setStatus("detailStatus", "Related item added.", "success");
             await loadDetail();
         } catch (error) {

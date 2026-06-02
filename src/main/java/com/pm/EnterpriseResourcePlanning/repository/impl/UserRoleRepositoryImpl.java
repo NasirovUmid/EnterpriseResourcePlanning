@@ -1,7 +1,9 @@
 package com.pm.EnterpriseResourcePlanning.repository.impl;
 
 import com.pm.EnterpriseResourcePlanning.entity.RolesEntity;
+import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import com.pm.EnterpriseResourcePlanning.enums.RoleStatus;
+import com.pm.EnterpriseResourcePlanning.enums.UserStatus;
 import com.pm.EnterpriseResourcePlanning.repository.UserRolesRepository;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -72,6 +74,26 @@ public class UserRoleRepositoryImpl implements UserRolesRepository {
                         record.get(field("name", String.class)),
                         record.get(field("status")) != null ? RoleStatus.valueOf(String.valueOf(record.get(field("status")))) : null
                 ));
+    }
+
+    @Override
+    public List<UserEntity> findUsersByRoleId(UUID roleId) {
+
+        return dsl.select(table("users").fields())
+                .from(table("users"))
+                .join(table(tableName)).on(field("users.id").eq(field("user_roles.user_id")))
+                .where(field(tableName + ".role_id", UUID.class).eq(roleId))
+                .fetch(record -> {
+                    UserEntity user = new UserEntity();
+                    user.setId(record.get(field("id", UUID.class)));
+                    user.setFullName(record.get(field("full_name", String.class)));
+                    user.setUsername(record.get(field("username", String.class)));
+                    user.setPhoneNumber(record.get(field("phone_number", String.class)));
+                    user.setPassword(record.get(field("password", String.class)));
+                    Object status = record.get(field("status"));
+                    user.setUserStatus(status != null ? UserStatus.valueOf(String.valueOf(status)) : null);
+                    return user;
+                });
     }
 
     @Override

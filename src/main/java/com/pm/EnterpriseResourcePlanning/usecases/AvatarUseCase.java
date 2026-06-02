@@ -31,7 +31,7 @@ public class AvatarUseCase {
     @Value("${storageLocation}")
     private String storageUrl;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public AvatarEntity saveFile(MultipartFile file, UUID userId) throws IOException {
 
         if (file.isEmpty()) throw new RuntimeException();
@@ -49,7 +49,7 @@ public class AvatarUseCase {
         return dataSource.saveAvatar(fileName, userId);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateAvatar(MultipartFile file, UUID id) throws IOException {
 
         AvatarResponseDto avatarResponseDto = dataSource.getAvatarByUserId(id);
@@ -89,7 +89,7 @@ public class AvatarUseCase {
         return resource;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteAvatar(UUID userId) throws IOException {
 
         String avatar = dataSource.getAvatarByUserId(userId).url();

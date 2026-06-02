@@ -25,7 +25,7 @@ public class ProductsUseCase {
 
     private final ProductDataSource productDataSource;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ProductResponseDto createProduct(@Valid ProductRequestDto requestDto) {
         return productDataSource.saveProduct(requestDto.name(), requestDto.price(), requestDto.unit(), requestDto.productStatus());
     }
@@ -41,7 +41,7 @@ public class ProductsUseCase {
         return productDataSource.getProductsPage(pageable, specification);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateProduct(@Valid ProductUpdateRequestDto productUpdateRequestDto) {
 
         if (productUpdateRequestDto == null || (productUpdateRequestDto.name() == null && productUpdateRequestDto.price() == null &&
@@ -60,7 +60,7 @@ public class ProductsUseCase {
         return productDataSource.getProductById(productId);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateProductUnit(UUID id, Integer unit) {
 
         productDataSource.updateProductUnit(unit, id);

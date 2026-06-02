@@ -38,8 +38,18 @@ public class RolesDataSourceImpl extends MessageAlertDataSource implements RoleD
     }
 
     @Override
+    public RoleResponseDto getRoleByIdDto(UUID id) {
+        return execute(() -> roleMapper.toDto(roleDao.getRoleById(id)));
+    }
+
+    @Override
     public void deactivateRole(UUID id) {
         execute(() -> roleDao.deactivateRole(id));
+    }
+
+    @Override
+    public void updateRole(UUID id, String name, RoleStatus status) {
+        execute(() -> roleDao.updateRole(id, name, status));
     }
 
     @Override

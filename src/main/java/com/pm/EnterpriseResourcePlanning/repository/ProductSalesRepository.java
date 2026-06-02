@@ -1,17 +1,13 @@
 package com.pm.EnterpriseResourcePlanning.repository;
 
 import com.pm.EnterpriseResourcePlanning.entity.ProductsEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface ProductSalesRepository {
+public interface ProductSalesRepository extends JpaRepository<ProductsEntity, UUID>, CustomProductSalesRepository {
 
-    void saveProductSales(UUID productId, UUID salesId);
+    List<ProductsEntity> findAllById(Iterable<UUID> ids);
 
-    boolean exists(UUID productId, UUID salesId);
-
-    void removeProductSales(UUID productId, UUID salesId);
-
-    List<ProductsEntity> getSalesProducts(UUID salesId);
 }

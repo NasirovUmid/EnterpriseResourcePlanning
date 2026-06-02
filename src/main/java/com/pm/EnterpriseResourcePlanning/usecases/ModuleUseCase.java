@@ -18,7 +18,7 @@ public class ModuleUseCase {
 
     private final ModuleDataSource moduleDataSource;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ModuleResponseDto createModule(@Valid ModuleRequestDto moduleRequestDto) {
         return moduleDataSource.saveModule(moduleRequestDto.name());
     }
@@ -28,7 +28,7 @@ public class ModuleUseCase {
         return moduleDataSource.getModuleEntities(PageRequest.of(page, size));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateModule(UUID id, String name) {
 
         moduleDataSource.updateModule(name, id);

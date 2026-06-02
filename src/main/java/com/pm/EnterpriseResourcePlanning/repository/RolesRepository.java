@@ -26,6 +26,11 @@ public interface RolesRepository extends JpaRepository<RolesEntity, UUID>, Custo
             update RolesEntity re set re.status = 'DEACTIVATED' where re.id = :id""")
     void deactivateRole(@Param("id") UUID id);
 
+    @Modifying
+    @Query(value = """
+            update RolesEntity re set re.name = :name, re.status = :status where re.id = :id""")
+    void updateRole(@Param("id") UUID id, @Param("name") String name, @Param("status") RoleStatus status);
+
     Optional<RolesEntity> findRolesEntityById(UUID id);
 
 }

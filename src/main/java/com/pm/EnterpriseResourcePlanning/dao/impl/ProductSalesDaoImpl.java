@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -16,8 +17,8 @@ public class ProductSalesDaoImpl implements ProductSalesDao {
     private final ProductSalesRepository repository;
 
     @Override
-    public void saveProductSales(UUID productId, UUID salesId) {
-        repository.saveProductSales(productId, salesId);
+    public void saveProductSales(UUID productId, UUID salesId, Integer quantity, Double price) {
+        repository.saveProductSales(productId, salesId, quantity, price);
     }
 
     @Override
@@ -34,4 +35,10 @@ public class ProductSalesDaoImpl implements ProductSalesDao {
     public List<ProductsEntity> getSalesProducts(UUID salesId) {
         return repository.getSalesProducts(salesId);
     }
+
+    @Override
+    public List<ProductsEntity> findAll(Set<UUID> idS) {
+        return repository.findAllById(idS);
+    }
 }
+

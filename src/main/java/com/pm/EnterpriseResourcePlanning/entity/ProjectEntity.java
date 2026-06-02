@@ -4,6 +4,8 @@ import com.pm.EnterpriseResourcePlanning.enums.ProjectStatus;
 import com.pm.EnterpriseResourcePlanning.utils.FullAuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.UUID;
 
@@ -24,8 +26,9 @@ public class ProjectEntity extends FullAuditEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = true)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(columnDefinition = "project_status")
     private ProjectStatus status;
 
     @Override

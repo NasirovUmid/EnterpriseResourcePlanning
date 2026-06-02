@@ -11,7 +11,7 @@
     <div class="topbar">
         <div class="brand-block">
             <h1>Organization Workspace</h1>
-            <p>For `ADMIN` and `MOD_ORGANIZATION`: create organizations and review the organizations already tied to the current user.</p>
+            <p>Create organizations and review the organization scope available to you.</p>
         </div>
         <div class="nav-links">
             <a class="nav-pill" href="/index.html">Home</a>
@@ -25,7 +25,7 @@
         <section class="panel">
             <span class="eyebrow">Create Organization</span>
             <h2 class="section-title">New organization</h2>
-            <p class="subtle">This section is shown only for `ADMIN` and `MOD_ORGANIZATION` and sends `POST /organizations`.</p>
+            <p class="subtle">Register organization details for operational use.</p>
 
             <form id="organizationForm" class="form-grid">
                 <div class="input-row">
@@ -54,7 +54,7 @@
         <section class="panel">
             <span class="eyebrow">Organization List</span>
             <h2 class="section-title">My organization scope</h2>
-            <p class="subtle">The list is based on `GET /organizations/user-organization/{id}` because the general organization page still expects a request body and is not browser-friendly yet.</p>
+            <p class="subtle">Organizations connected to your workspace appear here.</p>
 
             <div id="organizationsStatus" class="status-box">Loading organization scope...</div>
             <div id="organizationsList" class="collection-list">
@@ -68,7 +68,6 @@
 <script>
     const {
         authorizedFetch,
-        fillSessionSummary,
         formatError,
         getApiBase,
         getSession,
@@ -92,9 +91,6 @@
                     <h3>${organization.name || "Unnamed organization"}</h3>
                     <p>INN: ${organization.inn || "-"}</p>
                     <p>Address: ${organization.address || "-"}</p>
-                    <div class="inline-meta">
-                        <span class="tag">${organization.id || "No id"}</span>
-                    </div>
                 </article>
             `;
         }).join("");
@@ -106,7 +102,7 @@
         try {
             const userId = getUserIdFromPage();
             if (!userId) {
-                throw new Error("User ID is required");
+                throw new Error("Organizations unavailable");
             }
 
             const response = await authorizedFetch(getApiBase() + "/organizations/user-organization/" + encodeURIComponent(userId), {
@@ -119,7 +115,7 @@
             }
 
             renderOrganizations(payload);
-            setStatus("organizationsStatus", "Organization scope loaded successfully.", "success");
+            setStatus("organizationsStatus", "Organizations loaded.", "success");
         } catch (error) {
             setStatus("organizationsStatus", formatError(error), "error");
         }
@@ -160,12 +156,9 @@
     } else {
         guardPage(["ADMIN", "MOD_ORGANIZATIONS"])
             .then(function () {
-                fillSessionSummary("session");
                 return loadOrganizations();
             })
-            .catch(function (error) {
-                console.error(error);
-            });
+            .catch(function () {});
     }
 </script>
 </body>

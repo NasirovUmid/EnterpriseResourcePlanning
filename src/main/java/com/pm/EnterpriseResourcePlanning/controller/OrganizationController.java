@@ -42,7 +42,7 @@ public class OrganizationController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','MOD_ORGANIZATIONS')")
+    @PreAuthorize("hasAnyRole('ADMIN','MOD_ORGANIZATIONS', 'AUDITOR')")
     public Page<OrganizationResponseDto> getOrganizationsPage(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size,

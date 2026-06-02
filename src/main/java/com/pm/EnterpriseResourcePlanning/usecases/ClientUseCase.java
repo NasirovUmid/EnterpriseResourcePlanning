@@ -33,7 +33,7 @@ public class ClientUseCase {
     private final ClientDataSource clientDataSource;
     private final ContractClientDataSource contractClientDataSource;
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ClientResponseDto createClient(@Valid ClientRequestDto clientRequestDto) {
         return clientDataSource.saveClient(clientRequestDto.fullName(), clientRequestDto.phone(), clientRequestDto.type());
     }
@@ -50,7 +50,7 @@ public class ClientUseCase {
 
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void saveContractClient(@Valid ContractClientRequestDto requestDto) {
 
         if (contractClientDataSource.exists(requestDto.uuid(), requestDto.uuid1())) {
@@ -64,7 +64,7 @@ public class ClientUseCase {
         return contractClientDataSource.exists(requestDto.uuid(), requestDto.uuid1());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void removeContractClient(@Valid IntermediateRequestDto requestDto) {
         contractClientDataSource.removeContractClient(requestDto.uuid(), requestDto.uuid1());
     }

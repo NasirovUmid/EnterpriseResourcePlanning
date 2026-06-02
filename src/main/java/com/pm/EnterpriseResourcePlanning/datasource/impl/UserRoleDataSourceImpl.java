@@ -5,7 +5,9 @@ import com.pm.EnterpriseResourcePlanning.dao.impl.UserRolesDaoImpl;
 import com.pm.EnterpriseResourcePlanning.datasource.UserRoleDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.helper.MessageAlertDataSource;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.RoleResponseDto;
+import com.pm.EnterpriseResourcePlanning.dto.responsdtos.UserResponseDto;
 import com.pm.EnterpriseResourcePlanning.mapper.RoleMapper;
+import com.pm.EnterpriseResourcePlanning.mapper.UserMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,11 +17,13 @@ import java.util.UUID;
 public class UserRoleDataSourceImpl extends MessageAlertDataSource implements UserRoleDataSource {
 
     private final RoleMapper roleMapper;
+    private final UserMapper userMapper;
     private final UserRolesDaoImpl userRolesDao;
 
-    public UserRoleDataSourceImpl(AlertSystemDao alertSystemDao, RoleMapper roleMapper, UserRolesDaoImpl userRolesDao) {
+    public UserRoleDataSourceImpl(AlertSystemDao alertSystemDao, RoleMapper roleMapper, UserMapper userMapper, UserRolesDaoImpl userRolesDao) {
         super(alertSystemDao, UserRoleDataSourceImpl.class);
         this.roleMapper = roleMapper;
+        this.userMapper = userMapper;
         this.userRolesDao = userRolesDao;
     }
 
@@ -41,6 +45,11 @@ public class UserRoleDataSourceImpl extends MessageAlertDataSource implements Us
     @Override
     public List<RoleResponseDto> findRolesByUserId(UUID userId) {
         return execute(() -> userRolesDao.findRolesByUserId(userId).stream().map(roleMapper::toDto).toList());
+    }
+
+    @Override
+    public List<UserResponseDto> findUsersByRoleId(UUID roleId) {
+        return execute(() -> userRolesDao.findUsersByRoleId(roleId).stream().map(userMapper::toDto).toList());
     }
 
     @Override

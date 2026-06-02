@@ -34,6 +34,11 @@ public class RoleDaoImpl implements RoleDao {
     }
 
     @Override
+    public void updateRole(UUID id, String name, RoleStatus status) {
+        repository.updateRole(id, name, status);
+    }
+
+    @Override
     public RolesEntity getRoleById(UUID id) {
         return repository.findRolesEntityById(id).orElseThrow(() -> new NotFoundException(ErrorMessages.ROLE_NOT_FOUND, id));
     }

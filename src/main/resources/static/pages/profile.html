@@ -11,13 +11,13 @@
     <div class="topbar">
         <div class="brand-block">
             <h1>User Profile</h1>
-            <p>Role-aware dashboard with separate pages for personal lists and moderator workspaces.</p>
+            <p>Manage your profile, account access, and available workspaces.</p>
         </div>
         <div class="nav-links">
             <a class="nav-pill" href="/index.html">Home</a>
-            <a class="nav-pill" href="/pages/user-projects.html" data-hidden-for="ADMIN">My projects</a>
-            <a class="nav-pill" href="/pages/user-organizations.html" data-hidden-for="ADMIN">My organizations</a>
-            <a class="nav-pill" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS">Admin panel</a>
+            <a class="nav-pill" href="/pages/user-projects.html">My projects</a>
+            <a class="nav-pill" href="/pages/user-organizations.html">My organizations</a>
+            <a class="nav-pill" id="topPanelLink" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS,MOD_SALES,MOD_ROLES,AUDITOR">Admin panel</a>
         </div>
     </div>
 
@@ -25,14 +25,9 @@
         <section class="panel">
             <span class="eyebrow">Profile Lookup</span>
             <h2 class="section-title">Current user overview</h2>
-            <p class="subtle">This page loads your profile and role list, then shows only the pages that match your access level.</p>
+            <p class="subtle">Your profile information and workspace access are shown below.</p>
 
             <div class="form-grid">
-                <div class="input-row">
-                    <label for="userId">User ID</label>
-                    <input id="userId" type="text" placeholder="Paste UUID if login did not store it">
-                </div>
-
                 <div class="button-row">
                     <button id="loadProfileButton" class="btn btn-primary" type="button">Reload profile</button>
                     <a class="btn btn-secondary" href="/pages/change-password.html">Open change password</a>
@@ -40,7 +35,7 @@
                 </div>
             </div>
 
-            <div id="profileStatus" class="status-box">Waiting for automatic profile loading.</div>
+            <div id="profileStatus" class="status-box">Loading profile information.</div>
 
             <div class="profile-avatar-block">
                 <img id="profileAvatar" class="profile-avatar" alt="User avatar" hidden>
@@ -61,38 +56,33 @@
             <div class="stats-grid">
                 <div class="stat">
                     <strong>Full name</strong>
-                    <span id="profile-fullName">Not loaded</span>
+                    <span id="profile-fullName">-</span>
                 </div>
                 <div class="stat">
                     <strong>Email</strong>
-                    <span id="profile-username">Not loaded</span>
+                    <span id="profile-username">-</span>
                 </div>
                 <div class="stat">
                     <strong>Phone</strong>
-                    <span id="profile-phone">Not loaded</span>
+                    <span id="profile-phone">-</span>
                 </div>
                 <div class="stat">
                     <strong>Status</strong>
-                    <span id="profile-status-value">Not loaded</span>
+                    <span id="profile-status-value">-</span>
                 </div>
                 <div class="stat">
                     <strong>Roles</strong>
-                    <span id="profile-roles">Not loaded</span>
+                    <span id="profile-roles">-</span>
                 </div>
             </div>
         </section>
 
         <section class="panel highlight">
-            <span class="eyebrow">Role Routing</span>
-            <h2 class="title">Each role now gets its own front-end path.</h2>
+            <span class="eyebrow">Workspace Access</span>
+            <h2 class="title">Your available work areas are ready.</h2>
             <p class="subtle">
-                `USER` works through personal pages. `MOD_PROJECTS` and `MOD_ORGANIZATIONS` get their own workspace pages. `ADMIN` can also open the combined admin panel.
+                Role-based access keeps the workspace focused on the tools you need.
             </p>
-            <ul class="note-list">
-                <li>Token refresh stays automatic in the background.</li>
-                <li>UI visibility is based on `GET /users/{id}/roles`.</li>
-                <li>Backend security still remains the real source of truth.</li>
-            </ul>
         </section>
     </div>
 
@@ -101,13 +91,13 @@
             <span class="eyebrow">User Area</span>
             <h2 class="section-title">Personal pages</h2>
             <div class="dashboard-links">
-                <a class="action-card" href="/pages/user-projects.html" data-hidden-for="ADMIN">
+                <a class="action-card" href="/pages/user-projects.html">
                     <strong>My projects</strong>
-                    <span>View and interact with your assigned projects.</span>
+                    <span>Projects personally assigned to your account.</span>
                 </a>
-                <a class="action-card" href="/pages/user-organizations.html" data-hidden-for="ADMIN">
+                <a class="action-card" href="/pages/user-organizations.html">
                     <strong>My organizations</strong>
-                    <span>Browse the organizations you are a member of.</span>
+                    <span>Organizations where your account works.</span>
                 </a>
             </div>
         </section>
@@ -124,43 +114,20 @@
                     <strong>Organization workspace</strong>
                     <span>Create organizations and review organization scope for organization roles.</span>
                 </a>
-                <a class="action-card" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS">
-                    <strong>Admin panel</strong>
-                    <span>Open the combined admin-only creation screen.</span>
+                <a class="action-card" id="rolePanelCard" href="/pages/admin-panel.html" data-visible-for="ADMIN,MOD_ORGANIZATIONS,MOD_PROJECTS,MOD_USERS,MOD_PRODUCTS,MOD_CONTRACTS,MOD_SALES,MOD_ROLES,AUDITOR">
+                    <strong id="rolePanelTitle">Admin panel</strong>
+                    <span id="rolePanelDescription">Open the management workspace for your role.</span>
                 </a>
             </div>
         </section>
     </div>
 
-    <section class="card" style="margin-top: 22px;">
-        <span class="eyebrow">Session Details</span>
-        <h2 class="section-title">Stored auth context</h2>
-        <div class="stats-grid">
-            <div class="stat">
-                <strong>Email</strong>
-                <span id="session-email">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>User ID</strong>
-                <span id="session-userId">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>Roles</strong>
-                <span id="session-roles">Not loaded</span>
-            </div>
-            <div class="stat">
-                <strong>Expires At</strong>
-                <span id="session-expiresAt">Not available</span>
-            </div>
-        </div>
-    </section>
 </div>
 
 <script src="/js/auth-pages.js"></script>
 <script>
     const {
         authorizedFetch,
-        fillSessionSummary,
         formatError,
         getApiBase,
         getSession,
@@ -175,7 +142,7 @@
     function syncUserIdInput() {
         const session = getSession();
         const input = document.getElementById("userId");
-        if (!input.value && session.userId) {
+        if (input && !input.value && session.userId) {
             input.value = session.userId;
         }
     }
@@ -188,7 +155,43 @@
     }
 
     function renderRoles(roles) {
-        document.getElementById("profile-roles").textContent = roles.length ? roles.join(", ") : "No roles found";
+        document.getElementById("profile-roles").textContent = roles.length ? roles.join(", ") : "-";
+    }
+
+    function updatePanelLabels(roles) {
+        const labels = [
+            {role: "ADMIN", title: "Admin panel", description: "Open the full administration workspace."},
+            {role: "MOD_PROJECTS", title: "Projects panel", description: "Open project management tools."},
+            {role: "MOD_ORGANIZATIONS", title: "Organizations panel", description: "Open organization management tools."},
+            {role: "MOD_USERS", title: "Users panel", description: "Open user management tools."},
+            {role: "MOD_PRODUCTS", title: "Products panel", description: "Open product catalogue tools."},
+            {role: "MOD_CONTRACTS", title: "Contracts panel", description: "Open contract management tools."},
+            {role: "MOD_SALES", title: "Sales panel", description: "Open sales management tools."},
+            {role: "MOD_ROLES", title: "Roles panel", description: "Open roles and access tools."},
+            {role: "AUDITOR", title: "Auditor panel", description: "Open the read-only audit workspace."}
+        ];
+
+        const match = labels.find(function(item) {
+            return roles.includes(item.role);
+        });
+
+        if (!match) {
+            return;
+        }
+
+        const topPanelLink = document.getElementById("topPanelLink");
+        const rolePanelTitle = document.getElementById("rolePanelTitle");
+        const rolePanelDescription = document.getElementById("rolePanelDescription");
+
+        if (topPanelLink) {
+            topPanelLink.textContent = match.title;
+        }
+        if (rolePanelTitle) {
+            rolePanelTitle.textContent = match.title;
+        }
+        if (rolePanelDescription) {
+            rolePanelDescription.textContent = match.description;
+        }
     }
 
     function setAvatarPlaceholder() {
@@ -244,14 +247,17 @@
     }
 
     async function loadProfile() {
-        setStatus("profileStatus", "Loading profile and roles...", "");
+        setStatus("profileStatus", "Loading profile information...", "");
 
         try {
             const userId = getUserIdFromPage();
-            document.getElementById("userId").value = userId || "";
+            const userIdInput = document.getElementById("userId");
+            if (userIdInput) {
+                userIdInput.value = userId || "";
+            }
 
             if (!userId) {
-                throw new Error("User ID is required for profile loading");
+                throw new Error("Profile unavailable");
             }
 
             const user = await fetchJsonOrThrow(getApiBase() + "/users/" + encodeURIComponent(userId));
@@ -259,9 +265,9 @@
 
             renderProfile(user);
             renderRoles(roles);
+            updatePanelLabels(roles);
             await setAvatarPreview(userId);
-            fillSessionSummary("session");
-            setStatus("profileStatus", "Profile data loaded successfully.", "success");
+            setStatus("profileStatus", "Profile loaded.", "success");
         } catch (error) {
             setStatus("profileStatus", formatError(error), "error");
         }
@@ -320,7 +326,7 @@
             document.getElementById("avatarChooser").hidden = true;
             document.getElementById("updateAvatarButton").hidden = false;
             await setAvatarPreview(userId);
-            setStatus("profileStatus", "Avatar updated successfully.", "success");
+            setStatus("profileStatus", "Avatar updated.", "success");
         } catch (error) {
             setStatus("profileStatus", formatError(error), "error");
         }
@@ -340,7 +346,6 @@
         }
     });
 
-    fillSessionSummary("session");
     syncUserIdInput();
 
     if (!getSession().accessToken && !getSession().refreshToken) {

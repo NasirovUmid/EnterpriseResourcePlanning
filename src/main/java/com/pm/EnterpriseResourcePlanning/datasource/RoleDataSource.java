@@ -16,7 +16,11 @@ public interface RoleDataSource {
 
     List<RoleResponseDto> getRolePages();
 
+    RoleResponseDto getRoleByIdDto(UUID id);
+
     void deactivateRole(UUID id);
+
+    void updateRole(UUID id, String name, RoleStatus status);
 
     RolesEntity getRoleById(UUID id);
 }

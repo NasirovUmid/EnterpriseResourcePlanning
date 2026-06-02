@@ -25,7 +25,7 @@
     <section class="panel">
         <span class="eyebrow">Projects</span>
         <h2 class="section-title">Projects connected to your account</h2>
-        <p class="subtle">This page calls `GET /projects/users-projects/{id}` with auto-refresh in the background.</p>
+        <p class="subtle">Review the projects currently assigned to you.</p>
 
         <div id="projectsStatus" class="status-box">Loading your projects...</div>
         <div id="projectsList" class="collection-list">
@@ -33,35 +33,12 @@
         </div>
     </section>
 
-    <section class="card" style="margin-top: 22px;">
-        <span class="eyebrow">Session Details</span>
-        <h2 class="section-title">Stored auth context</h2>
-        <div class="stats-grid">
-            <div class="stat">
-                <strong>Email</strong>
-                <span id="session-email">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>User ID</strong>
-                <span id="session-userId">Not available</span>
-            </div>
-            <div class="stat">
-                <strong>Roles</strong>
-                <span id="session-roles">Not loaded</span>
-            </div>
-            <div class="stat">
-                <strong>Expires At</strong>
-                <span id="session-expiresAt">Not available</span>
-            </div>
-        </div>
-    </section>
 </div>
 
 <script src="/js/auth-pages.js"></script>
 <script>
     const {
         authorizedFetch,
-        fillSessionSummary,
         formatError,
         getApiBase,
         getSession,
@@ -84,8 +61,7 @@
                 <a class="collection-item" href="/pages/entity-detail.html?type=project&id=${encodeURIComponent(project.id || "")}">
                     <h3>${project.name || "Unnamed project"}</h3>
                     <div class="inline-meta">
-                        <span class="tag">${project.status || "Unknown status"}</span>
-                        <span class="tag">${project.id || "No id"}</span>
+                        <span class="tag">${project.status || "-"}</span>
                     </div>
                 </a>
             `;
@@ -99,7 +75,7 @@
             await initializeRoleView();
             const userId = getUserIdFromPage();
             if (!userId) {
-                throw new Error("User ID is required");
+                throw new Error("Projects unavailable");
             }
 
             const response = await authorizedFetch(getApiBase() + "/projects/users-projects/" + encodeURIComponent(userId), {
@@ -112,14 +88,11 @@
             }
 
             renderProjects(payload);
-            fillSessionSummary("session");
-            setStatus("projectsStatus", "Projects loaded successfully.", "success");
+            setStatus("projectsStatus", "Projects loaded.", "success");
         } catch (error) {
             setStatus("projectsStatus", formatError(error), "error");
         }
     }
-
-    fillSessionSummary("session");
 
     if (!getSession().accessToken && !getSession().refreshToken) {
         redirectToLogin();
