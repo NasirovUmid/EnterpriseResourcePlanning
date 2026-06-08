@@ -1,6 +1,6 @@
 package com.pm.EnterpriseResourcePlanning.controller;
 
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.RoleRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.PermissionResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.RoleResponseDto;
@@ -8,7 +8,6 @@ import com.pm.EnterpriseResourcePlanning.dto.responsdtos.UserResponseDto;
 import com.pm.EnterpriseResourcePlanning.usecases.RoleUseCase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +33,7 @@ public class RoleController {
 
     @PostMapping("/permissions")
     @PreAuthorize("hasAnyRole('ADMIN', 'MOD_ROLES')")
-    public ResponseEntity<Void> connectRolePermission(@Valid @RequestBody IntermediateRequestDto rolePermissionRequestDto) {
+    public ResponseEntity<Void> connectRolePermission(@Valid @RequestBody LinkRequestDto rolePermissionRequestDto) {
         roleUseCase.connectRolePermission(rolePermissionRequestDto);
 
         return ResponseEntity.status(201).build();
@@ -74,7 +73,7 @@ public class RoleController {
 
     @DeleteMapping("/permissions/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MOD_ROLES')")
-    public ResponseEntity<Void> deleteRolePermissionLink(@Valid @RequestBody IntermediateRequestDto rolePermissionRequestDto) {
+    public ResponseEntity<Void> deleteRolePermissionLink(@Valid @RequestBody LinkRequestDto rolePermissionRequestDto) {
 
         roleUseCase.deleteRolePermissionLink(rolePermissionRequestDto);
         return ResponseEntity.ok().build();

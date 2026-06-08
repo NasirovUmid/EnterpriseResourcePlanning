@@ -3,14 +3,17 @@ package com.pm.EnterpriseResourcePlanning.usecases;
 import com.pm.EnterpriseResourcePlanning.datasource.ContractDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.ContractProjectDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.OrganizationContractDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.helper.SortResolver;
 import com.pm.EnterpriseResourcePlanning.dto.filters.ContractFilterDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ContractUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ContractsRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.ContractResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.ProjectResponseDto;
 import com.pm.EnterpriseResourcePlanning.entity.ContractsEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
+import com.pm.EnterpriseResourcePlanning.enums.SortType;
 import com.pm.EnterpriseResourcePlanning.exceptions.AlreadyExistsException;
 import com.pm.EnterpriseResourcePlanning.exceptions.MethodArgumentNotValidException;
 import com.pm.EnterpriseResourcePlanning.specifications.ContractSpecification;
@@ -55,27 +58,40 @@ public class ContractUseCase {
                 ContractSpecification.build(filterDto.contractNumber(), filterDto.amountGreater(), filterDto.amountLower(),
                         filterDto.startDateFrom(), filterDto.startDateTo(), filterDto.endDateFrom(), filterDto.endDateTo());
 
-        Pageable pageable = PageRequest.of(page, size, toContractEntitySort(sort));
+        Sort sort1 = SortResolver.resolver(SortType.CONTRACT, sort);
+
+        Pageable pageable = PageRequest.of(page, size, sort1);
 
         return contractDataSource.getContractsPage(specification, pageable);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void linkOrganizationContract(@Valid IntermediateRequestDto organizationContractRequestDto) {
+    public void linkOrganizationContract(@Valid LinkRequestDto organizationContractRequestDto) {
 
-        if (organizationContractDataSource.exists(organizationContractRequestDto.uuid(), organizationContractRequestDto.uuid1())) {
-            throw new AlreadyExistsException(ErrorMessages.ORGANIZATION_CONTRACT_ALREADY_EXISTS, organizationContractRequestDto.uuid(), organizationContractRequestDto.uuid1());
+        UUID organizationId = organizationContractRequestDto.entityId();
+        UUID contractId = organizationContractRequestDto.relatedEntityId();
+
+        if (organizationContractDataSource.exists(organizationId, contractId)) {
+            throw new AlreadyExistsException(ErrorMessages.ORGANIZATION_CONTRACT_ALREADY_EXISTS, organizationId, contractId);
         }
-        organizationContractDataSource.linkOrganizationContract(organizationContractRequestDto.uuid(), organizationContractRequestDto.uuid1());
+        organizationContractDataSource.linkOrganizationContract(organizationId, contractId);
     }
 
-    public boolean exists(@Valid IntermediateRequestDto organizationContractRequestDto) {
-        return organizationContractDataSource.exists(organizationContractRequestDto.uuid(), organizationContractRequestDto.uuid1());
+    public boolean exists(@Valid LinkRequestDto organizationContractRequestDto) {
+
+        UUID organizationId = organizationContractRequestDto.entityId();
+        UUID contractId = organizationContractRequestDto.relatedEntityId();
+
+        return organizationContractDataSource.exists(organizationId, contractId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void deleteOrganizationContract(IntermediateRequestDto organizationContractRequestDto) {
-        organizationContractDataSource.removeOrganizationContractLink(organizationContractRequestDto.uuid(), organizationContractRequestDto.uuid1());
+    public void deleteOrganizationContract(LinkRequestDto organizationContractRequestDto) {
+
+        UUID organizationId = organizationContractRequestDto.entityId();
+        UUID contractId = organizationContractRequestDto.relatedEntityId();
+
+        organizationContractDataSource.removeOrganizationContractLink(organizationId, contractId);
     }
 
     @Transactional(readOnly = true)
@@ -103,29 +119,22 @@ public class ContractUseCase {
         contractDataSource.deleteContract(id);
     }
 
-    private Sort toContractEntitySort(String sort) {
+    @Transactional(rollbackFor = Exception.class)
+    public void saveContractProject(@Valid LinkRequestDto requestDto) {
 
-        if (sort == null || !sort.contains(",")) {
-            return Sort.by("startDate,desc");
-        }
+        UUID contractId = requestDto.entityId();
+        UUID projectId = requestDto.relatedEntityId();
 
-        String[] parts = sort.split(",");
-        String field = parts[0];
-        String direction = parts[1];
-
-        return direction.equalsIgnoreCase("desc") ?
-                Sort.by(field).descending() :
-                Sort.by(field).ascending();
+        contractProjectDataSource.saveContractProjects(contractId, projectId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void saveContractProject(@Valid IntermediateRequestDto requestDto) {
-        contractProjectDataSource.saveContractProjects(requestDto.uuid(), requestDto.uuid1());
-    }
+    public void deleteContractProject(@Valid LinkRequestDto requestDto) {
 
-    @Transactional(rollbackFor = Exception.class)
-    public void deleteContractProject(@Valid IntermediateRequestDto requestDto) {
-        contractProjectDataSource.deleteContractProjects(requestDto.uuid(), requestDto.uuid1());
+        UUID contractId = requestDto.entityId();
+        UUID projectId = requestDto.relatedEntityId();
+
+        contractProjectDataSource.deleteContractProjects(contractId, projectId);
     }
 
     @Transactional(readOnly = true)

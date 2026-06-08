@@ -1,7 +1,7 @@
 package com.pm.EnterpriseResourcePlanning.controller;
 
 import com.pm.EnterpriseResourcePlanning.dto.filters.UserFilterDto;
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.UserRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.UserUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.RoleResponseDto;
@@ -42,7 +42,7 @@ public class UserController {
 
     @PostMapping("/roles")
     @PreAuthorize("hasAnyRole('ADMIN', 'MOD_ROLES')")
-    public ResponseEntity<Void> connectUserToRole(@Valid @RequestBody IntermediateRequestDto userRoleRequestDto) {
+    public ResponseEntity<Void> connectUserToRole(@Valid @RequestBody LinkRequestDto userRoleRequestDto) {
 
         userUseCase.connectUserToRole(userRoleRequestDto);
 
@@ -96,7 +96,7 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MOD_ROLES')")
     @DeleteMapping("/link")
-    public ResponseEntity<Void> deleteUserRoleLink(@Valid @RequestBody IntermediateRequestDto userRoleRequestDto) {
+    public ResponseEntity<Void> deleteUserRoleLink(@Valid @RequestBody LinkRequestDto userRoleRequestDto) {
 
         userUseCase.deleteUserRoleLink(userRoleRequestDto);
 

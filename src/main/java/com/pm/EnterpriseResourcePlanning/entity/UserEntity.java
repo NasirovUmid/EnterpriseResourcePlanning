@@ -5,6 +5,7 @@ import com.pm.EnterpriseResourcePlanning.utils.FullAuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -36,4 +37,19 @@ public class UserEntity extends FullAuditEntity {
     @Column(nullable = true, name = "status")
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus = UserStatus.ACTIVE;
+
+    @Override
+    public boolean equals(Object o){
+
+        if (this == o) return true;
+
+        if (!(o instanceof UserEntity userEntity)) return false;
+
+        return Objects.equals(userEntity.id,this.id);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
+    }
 }

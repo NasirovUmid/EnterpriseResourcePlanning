@@ -4,16 +4,19 @@ import com.pm.EnterpriseResourcePlanning.dao.UserDao;
 import com.pm.EnterpriseResourcePlanning.dao.impl.UserDaoImpl;
 import com.pm.EnterpriseResourcePlanning.datasource.OrganizationDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.UserOrganizationDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.helper.SortResolver;
 import com.pm.EnterpriseResourcePlanning.datasource.impl.OrganizationDataSourceImpl;
 import com.pm.EnterpriseResourcePlanning.datasource.impl.UserOrganizationDataSourceImpl;
 import com.pm.EnterpriseResourcePlanning.dto.filters.OrganizationFilterDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.OrganizationRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.OrganizationUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.OrganizationResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.UserResponseDto;
 import com.pm.EnterpriseResourcePlanning.entity.OrganizationEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
+import com.pm.EnterpriseResourcePlanning.enums.SortType;
 import com.pm.EnterpriseResourcePlanning.enums.UserStatus;
 import com.pm.EnterpriseResourcePlanning.exceptions.AlreadyExistsException;
 import com.pm.EnterpriseResourcePlanning.exceptions.IllegalStateException;
@@ -58,7 +61,10 @@ public class OrganizationUseCase {
     public Page<OrganizationResponseDto> getOrganizationsPage(int page, int size, String sort, OrganizationFilterDto organizationFilterDto) {
 
         Specification<OrganizationEntity> specification = OrganizationSpecifications.build(organizationFilterDto.name(), organizationFilterDto.inn(), organizationFilterDto.address());
-        Pageable pageable = PageRequest.of(page, size, toOrganizationEntitySort(sort));
+
+        Sort sort1 = SortResolver.resolver(SortType.ORGANIZATION, sort);
+
+        Pageable pageable = PageRequest.of(page, size, sort1);
 
         return organizationDataSource.getOrganizationsPage(specification, pageable);
     }
@@ -69,26 +75,37 @@ public class OrganizationUseCase {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void createUserOrganizationLink(@Valid IntermediateRequestDto userOrganizationRequestDto) {
+    public void createUserOrganizationLink(@Valid LinkRequestDto userOrganizationRequestDto) {
 
-        if (userDao.getUserById(userOrganizationRequestDto.uuid()).getUserStatus().equals(UserStatus.DEACTIVATED)) {
-            throw new IllegalStateException(ErrorMessages.USER_IS_DEACTIVATED, userOrganizationRequestDto.uuid(), userOrganizationRequestDto.uuid1());
+        UUID userId = userOrganizationRequestDto.entityId();
+        UUID organizationId = userOrganizationRequestDto.relatedEntityId();
+
+        if (userDao.getUserById(userId).getUserStatus().equals(UserStatus.DEACTIVATED)) {
+            throw new IllegalStateException(ErrorMessages.USER_IS_DEACTIVATED, userId, organizationId);
         }
 
         if (exists(userOrganizationRequestDto)) {
-            throw new AlreadyExistsException(ErrorMessages.USER_ORGANIZATION_ALREADY_EXISTS, userOrganizationRequestDto.uuid(), userOrganizationRequestDto.uuid1());
+            throw new AlreadyExistsException(ErrorMessages.USER_ORGANIZATION_ALREADY_EXISTS, userId, organizationId);
         }
 
-        userOrganizationDataSource.saveUserOrganization(userOrganizationRequestDto.uuid(), userOrganizationRequestDto.uuid1());
+        userOrganizationDataSource.saveUserOrganization(userId, organizationId);
     }
 
-    public boolean exists(@Valid IntermediateRequestDto userOrganizationRequestDto) {
-        return userOrganizationDataSource.exists(userOrganizationRequestDto.uuid(), userOrganizationRequestDto.uuid1());
+    public boolean exists(@Valid LinkRequestDto userOrganizationRequestDto) {
+
+        UUID userId = userOrganizationRequestDto.entityId();
+        UUID organizationId = userOrganizationRequestDto.relatedEntityId();
+
+        return userOrganizationDataSource.exists(userId, organizationId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void removeUserOrganizationLink(@Valid IntermediateRequestDto userOrganizationRequestDto) {
-        userOrganizationDataSource.removeUserOrganizationLink(userOrganizationRequestDto.uuid(), userOrganizationRequestDto.uuid1());
+    public void removeUserOrganizationLink(@Valid LinkRequestDto userOrganizationRequestDto) {
+
+        UUID userId = userOrganizationRequestDto.entityId();
+        UUID organizationId = userOrganizationRequestDto.relatedEntityId();
+
+        userOrganizationDataSource.removeUserOrganizationLink(userId, organizationId);
     }
 
     @Transactional(readOnly = true)
@@ -100,24 +117,5 @@ public class OrganizationUseCase {
     public List<OrganizationResponseDto> getUserOrganizations(UUID userId) {
         return userOrganizationDataSource.getUserOrganizations(userId);
     }
-
-    private Sort toOrganizationEntitySort(String sort) {
-
-        if (sort == null || !sort.contains(",")) {
-            return Sort.by("name").ascending();
-        }
-        String[] parts = sort.split(",");
-        if (parts.length < 2) {
-            return Sort.by("name").ascending();
-        }
-
-        String field = parts[0];
-        String direction = parts[1];
-
-        return direction.equalsIgnoreCase("desc")
-                ? Sort.by(field).descending()
-                : Sort.by(field).ascending();
-    }
-
 }
 

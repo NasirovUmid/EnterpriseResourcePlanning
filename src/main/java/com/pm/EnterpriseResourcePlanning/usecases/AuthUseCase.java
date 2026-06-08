@@ -50,6 +50,8 @@ public class AuthUseCase {
     private final AvatarUseCase avatarUseCase;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenDataSource refreshTokenDataSource;
+    private static final int MAX_ATTEMPTS_COUNT = 3;
+    private static final Duration LOCK_DURATION = Duration.ofMinutes(15);
 
     @Transactional(rollbackFor = Exception.class)
     public AuthUserResponseDto register(@Valid UserRequestDto userRequestDto, MultipartFile avatar) throws IOException, NoSuchAlgorithmException {
@@ -91,8 +93,8 @@ public class AuthUseCase {
                 int newAttemptCount = blackListEntity.getAttemptsCount() + 1;
                 blackListEntity.setAttemptsCount(newAttemptCount);
 
-                if (newAttemptCount >= 3) {
-                    blackListEntity.setLockUntil(Instant.now().plus(15, ChronoUnit.MINUTES));
+                if (newAttemptCount >= MAX_ATTEMPTS_COUNT) {
+                    blackListEntity.setLockUntil(Instant.now().plus(LOCK_DURATION));
                     blackListDao.save(blackListEntity);
                     throw new LockedException("The account is locked. Try again in 15 minutes");
                 }

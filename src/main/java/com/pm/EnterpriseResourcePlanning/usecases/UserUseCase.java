@@ -3,8 +3,9 @@ package com.pm.EnterpriseResourcePlanning.usecases;
 import com.pm.EnterpriseResourcePlanning.dao.RoleDao;
 import com.pm.EnterpriseResourcePlanning.datasource.UserDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.UserRoleDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.helper.SortResolver;
 import com.pm.EnterpriseResourcePlanning.dto.filters.UserFilterDto;
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.UserRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.UserUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.RoleResponseDto;
@@ -12,6 +13,7 @@ import com.pm.EnterpriseResourcePlanning.dto.responsdtos.UserResponseDto;
 import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
 import com.pm.EnterpriseResourcePlanning.enums.RoleStatus;
+import com.pm.EnterpriseResourcePlanning.enums.SortType;
 import com.pm.EnterpriseResourcePlanning.enums.UserStatus;
 import com.pm.EnterpriseResourcePlanning.exceptions.AlreadyExistsException;
 import com.pm.EnterpriseResourcePlanning.exceptions.IllegalStateException;
@@ -22,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +41,7 @@ public class UserUseCase {
     private final AvatarUseCase avatarUseCase;
     private final UserRoleDataSource userRoleDataSource;
     private final RoleDao roleDao;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(rollbackFor = Exception.class)
     public UserResponseDto createUser(UserRequestDto userRequestDto, MultipartFile avatar) throws IOException {
@@ -46,7 +50,7 @@ public class UserUseCase {
             throw new AlreadyExistsException(ErrorMessages.USER_ALREADY_EXISTS, userRequestDto.username());
         }
 
-        UserResponseDto responseDto = userDataSource.createUser(userRequestDto.fullname(), userRequestDto.username(), userRequestDto.password(), userRequestDto.phoneNumber());
+        UserResponseDto responseDto = userDataSource.createUser(userRequestDto.fullname(), userRequestDto.username(), passwordEncoder.encode(userRequestDto.password()), userRequestDto.phoneNumber());
 
         avatarUseCase.saveFile(avatar, responseDto.id());
 
@@ -56,9 +60,12 @@ public class UserUseCase {
     @Transactional(readOnly = true)
     public Page<UserResponseDto> getUsersPage(int page, int size, UserFilterDto userFilterDto, String sort) {
 
-        Specification<UserEntity> specification = UserSpecifications.build(userFilterDto.fullName(), userFilterDto.username(), userFilterDto.phoneNumber(), userFilterDto.userStatus());
+        Specification<UserEntity> specification = UserSpecifications.build(userFilterDto.fullName(),
+                userFilterDto.username(), userFilterDto.phoneNumber(), userFilterDto.userStatus());
 
-        return userDataSource.getUsersPage(specification, PageRequest.of(page, size, toUserEntitySort(sort)));
+        Sort sort1 = SortResolver.resolver(SortType.USER, sort);
+
+        return userDataSource.getUsersPage(specification, PageRequest.of(page, size, sort1));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -82,32 +89,43 @@ public class UserUseCase {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void connectUserToRole(@Valid IntermediateRequestDto userRoleRequestDto) {
+    public void connectUserToRole(@Valid LinkRequestDto userRoleRequestDto) {
 
-        if (roleDao.getRoleById(userRoleRequestDto.uuid1()).getStatus().equals(RoleStatus.DEACTIVATED)) {
-            throw new IllegalStateException(ErrorMessages.ROLE_IS_DEACTIVATED, userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
+        UUID userId = userRoleRequestDto.entityId();
+        UUID roleId = userRoleRequestDto.relatedEntityId();
+
+        if (roleDao.getRoleById(roleId).getStatus().equals(RoleStatus.DEACTIVATED)) {
+            throw new IllegalStateException(ErrorMessages.ROLE_IS_DEACTIVATED, userId, roleId);
         }
 
-        UserResponseDto user = userDataSource.getUserById(userRoleRequestDto.uuid());
+        UserResponseDto user = userDataSource.getUserById(userId);
 
         if (user.status().equals(UserStatus.DEACTIVATED)) {
-            throw new IllegalStateException(ErrorMessages.USER_IS_DEACTIVATED, userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
+            throw new IllegalStateException(ErrorMessages.USER_IS_DEACTIVATED, userId, roleId);
         }
 
         if (userRoleExists(userRoleRequestDto)) {
-            throw new AlreadyExistsException(ErrorMessages.USER_ROLE_ALREADY_EXISTS, userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
+            throw new AlreadyExistsException(ErrorMessages.USER_ROLE_ALREADY_EXISTS, userId, roleId);
         }
 
-        userRoleDataSource.saveUserRole(userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
+        userRoleDataSource.saveUserRole(userId, roleId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void deleteUserRoleLink(@Valid IntermediateRequestDto userRoleRequestDto) {
-        userRoleDataSource.removeUserRoleLink(userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
+    public void deleteUserRoleLink(@Valid LinkRequestDto userRoleRequestDto) {
+
+        UUID userId = userRoleRequestDto.entityId();
+        UUID roleId = userRoleRequestDto.relatedEntityId();
+
+        userRoleDataSource.removeUserRoleLink(userId, roleId);
     }
 
-    public Boolean userRoleExists(@Valid IntermediateRequestDto userRoleRequestDto) {
-        return userRoleDataSource.exists(userRoleRequestDto.uuid(), userRoleRequestDto.uuid1());
+    public Boolean userRoleExists(@Valid LinkRequestDto userRoleRequestDto) {
+
+        UUID userId = userRoleRequestDto.entityId();
+        UUID roleId = userRoleRequestDto.relatedEntityId();
+
+        return userRoleDataSource.exists(userId, roleId);
     }
 
     @Transactional(readOnly = true)
@@ -115,19 +133,4 @@ public class UserUseCase {
         return userRoleDataSource.findRolesByUserId(id);
     }
 
-    public static Sort toUserEntitySort(String sort) {
-        if (sort == null) return Sort.by("fullName").ascending();
-
-        String s = sort.trim().toLowerCase();
-        if (s.equals("fullName,desc")) return Sort.by("fullName").descending();
-        if (s.equals("fullName,asc")) return Sort.by("fullName").ascending();
-
-        if (s.equals("username,desc")) return Sort.by("username").descending();
-        if (s.equals("username,asc")) return Sort.by("username").ascending();
-
-        if (s.equals("userStatus,desc")) return Sort.by("userStatus").descending();
-        if (s.equals("userStatus,asc")) return Sort.by("userStatus").ascending();
-
-        return Sort.by("fullName").ascending();
-    }
 }

@@ -1,7 +1,8 @@
 package com.pm.EnterpriseResourcePlanning.controller;
 
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.filters.ProductFilterDto;
+import com.pm.EnterpriseResourcePlanning.dto.filters.SalesFilterDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProductSalesRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.SalesRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.SalesUpdateRequestDto;
@@ -31,11 +32,12 @@ public class SalesController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MOD_SALES')")
     public ResponseEntity<SalesResponseDto> saveSales(@Valid @RequestBody SalesRequestDto salesRequestDto) {
 
-        log.info("{}",salesRequestDto);
+        log.info("{}", salesRequestDto);
 
         SalesResponseDto salesResponseDto = salesUseCase.saveSales(salesRequestDto);
         return ResponseEntity.status(201).body(salesResponseDto);
     }
+
     @PreAuthorize("hasAnyRole('ADMIN', 'MOD_SALES')")
     @PostMapping("/products")
     public ResponseEntity<Void> saveProductSales(@Valid @RequestBody List<ProductSalesRequestDto> requestDto) {
@@ -59,9 +61,12 @@ public class SalesController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MOD_SALES', 'AUDITOR')")
     public Page<SalesResponseDto> getSalesPages(
             @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int size) {
-        return salesUseCase.getSalesPages(page, size);
+            @RequestParam(required = false, defaultValue = "10") int size,
+            @RequestParam(required = false, defaultValue = "sales,asc") String sort,
+            @Valid @ModelAttribute SalesFilterDto salesFilterDto) {
+        return salesUseCase.getSalesPages(page, size, salesFilterDto,sort);
     }
+
     @PreAuthorize("hasAnyRole('ADMIN', 'MOD_SALES', 'AUDITOR')")
     @GetMapping("/{id}")
     public SalesResponseDto getSalesById(@PathVariable(name = "id") UUID id) {
@@ -72,7 +77,7 @@ public class SalesController {
 
     @GetMapping("/products/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'MOD_SALES', 'AUDITOR')")
-    public List<ProductResponseDto> getSalesProducts(@PathVariable(name = "id")UUID id){
+    public List<ProductResponseDto> getSalesProducts(@PathVariable(name = "id") UUID id) {
         return salesUseCase.getSalesProducts(id);
     }
 
@@ -89,7 +94,7 @@ public class SalesController {
     }
 
     @DeleteMapping("/products")
-    public ResponseEntity<Void> deleteProductSales(@Valid @RequestBody IntermediateRequestDto requestDto) {
+    public ResponseEntity<Void> deleteProductSales(@Valid @RequestBody LinkRequestDto requestDto) {
 
         salesUseCase.deleteProductSales(requestDto);
 

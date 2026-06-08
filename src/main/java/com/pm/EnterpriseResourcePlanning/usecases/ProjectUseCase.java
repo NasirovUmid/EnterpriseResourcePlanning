@@ -3,7 +3,9 @@ package com.pm.EnterpriseResourcePlanning.usecases;
 import com.pm.EnterpriseResourcePlanning.datasource.ProjectDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.ProjectOrganizationDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.UserProjectDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.helper.SortResolver;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProjectRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProjectUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.OrganizationResponseDto;
@@ -11,6 +13,7 @@ import com.pm.EnterpriseResourcePlanning.dto.responsdtos.ProjectResponseDto;
 import com.pm.EnterpriseResourcePlanning.entity.ProjectEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
 import com.pm.EnterpriseResourcePlanning.enums.ProjectStatus;
+import com.pm.EnterpriseResourcePlanning.enums.SortType;
 import com.pm.EnterpriseResourcePlanning.exceptions.AlreadyExistsException;
 import com.pm.EnterpriseResourcePlanning.exceptions.IllegalStateException;
 import com.pm.EnterpriseResourcePlanning.specifications.ProjectSpecifications;
@@ -47,7 +50,9 @@ public class ProjectUseCase {
 
         Specification<ProjectEntity> specification = ProjectSpecifications.build(name, status);
 
-        Pageable pageable = PageRequest.of(page, size, toProjectEntitySort(sort));
+        Sort sort1 = SortResolver.resolver(SortType.PROJECT, sort);
+
+        Pageable pageable = PageRequest.of(page, size, sort1);
 
         return projectDataSource.getProjectPage(specification, pageable);
 
@@ -69,27 +74,38 @@ public class ProjectUseCase {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void linkProjectOrganization(@Valid IntermediateRequestDto projectOrganizationDto) {
+    public void linkProjectOrganization(@Valid LinkRequestDto projectOrganizationDto) {
 
-        if (!projectDataSource.getProjectById(projectOrganizationDto.uuid()).status().equals(ProjectStatus.AWAITING) &&
-                !projectDataSource.getProjectById(projectOrganizationDto.uuid()).status().equals(ProjectStatus.ACTIVE)) {
-            throw new IllegalStateException(ErrorMessages.PROJECT_IS_NOT_ACCESSIBLE, projectOrganizationDto.uuid(), projectOrganizationDto.uuid1());
+        UUID projectId = projectOrganizationDto.entityId();
+        UUID organizationId = projectOrganizationDto.relatedEntityId();
+
+        if (!projectDataSource.getProjectById(projectId).status().equals(ProjectStatus.AWAITING) &&
+                !projectDataSource.getProjectById(projectId).status().equals(ProjectStatus.ACTIVE)) {
+            throw new IllegalStateException(ErrorMessages.PROJECT_IS_NOT_ACCESSIBLE, projectId, organizationId);
         }
 
         if (projectOrganizationExists(projectOrganizationDto)) {
-            throw new AlreadyExistsException(ErrorMessages.PROJECT_ORGANIZATION_ALREADY_EXISTS, projectOrganizationDto.uuid(), projectOrganizationDto.uuid1());
+            throw new AlreadyExistsException(ErrorMessages.PROJECT_ORGANIZATION_ALREADY_EXISTS, projectId, organizationId);
         }
 
-        projectOrganizationDataSource.linkProjectOrganization(projectOrganizationDto.uuid(), projectOrganizationDto.uuid1());
+        projectOrganizationDataSource.linkProjectOrganization(projectId, organizationId);
     }
 
-    public boolean projectOrganizationExists(@Valid IntermediateRequestDto projectRequestDto) {
-        return projectOrganizationDataSource.exists(projectRequestDto.uuid(), projectRequestDto.uuid1());
+    public boolean projectOrganizationExists(@Valid LinkRequestDto projectRequestDto) {
+
+        UUID projectId = projectRequestDto.entityId();
+        UUID organizationId = projectRequestDto.relatedEntityId();
+
+        return projectOrganizationDataSource.exists(projectId, organizationId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void deleteProjectOrganizationLink(@Valid IntermediateRequestDto projectOrganizationRequestDto) {
-        projectOrganizationDataSource.removeProjectOrganizationLink(projectOrganizationRequestDto.uuid(), projectOrganizationRequestDto.uuid1());
+    public void deleteProjectOrganizationLink(@Valid LinkRequestDto projectOrganizationRequestDto) {
+
+        UUID projectId = projectOrganizationRequestDto.entityId();
+        UUID organizationId = projectOrganizationRequestDto.relatedEntityId();
+
+        projectOrganizationDataSource.removeProjectOrganizationLink(projectId, organizationId);
     }
 
     @Transactional(readOnly = true)
@@ -103,22 +119,33 @@ public class ProjectUseCase {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void saveUserProject(@Valid IntermediateRequestDto requestDto) {
+    public void saveUserProject(@Valid LinkRequestDto requestDto) {
+
+        UUID projectId = requestDto.entityId();
+        UUID organizationId = requestDto.relatedEntityId();
 
         if (exists(requestDto)) {
-            throw new AlreadyExistsException(ErrorMessages.USER_PROJECT_ALREADY_EXISTS, requestDto.uuid(), requestDto.uuid1());
+            throw new AlreadyExistsException(ErrorMessages.USER_PROJECT_ALREADY_EXISTS, projectId, organizationId);
         }
 
-        userProjectDataSource.saveUserProject(requestDto.uuid(), requestDto.uuid1());
+        userProjectDataSource.saveUserProject(projectId, organizationId);
     }
 
-    public boolean exists(IntermediateRequestDto requestDto) {
-        return userProjectDataSource.existsUserProject(requestDto.uuid(), requestDto.uuid1());
+    public boolean exists(LinkRequestDto requestDto) {
+
+        UUID projectId = requestDto.entityId();
+        UUID organizationId = requestDto.relatedEntityId();
+
+        return userProjectDataSource.existsUserProject(projectId, organizationId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void removeUserProject(@Valid IntermediateRequestDto requestDto) {
-        userProjectDataSource.removeUserProject(requestDto.uuid(), requestDto.uuid1());
+    public void removeUserProject(@Valid LinkRequestDto requestDto) {
+
+        UUID projectId = requestDto.entityId();
+        UUID organizationId = requestDto.relatedEntityId();
+
+        userProjectDataSource.removeUserProject(projectId, organizationId);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -129,20 +156,6 @@ public class ProjectUseCase {
     @Transactional(readOnly = true)
     public List<ProjectResponseDto> getUserProjects(UUID id) {
         return userProjectDataSource.getUserProjects(id);
-    }
-
-    private Sort toProjectEntitySort(String sort) {
-        if (sort == null || !sort.contains(",")) {
-            return Sort.by("fullName").ascending(); // Сортировка по умолчанию
-        }
-
-        String[] parts = sort.split(",");
-        String field = parts[0];
-        String direction = parts[1];
-
-        return direction.equalsIgnoreCase("desc")
-                ? Sort.by(field).descending()
-                : Sort.by(field).ascending();
     }
 
 }

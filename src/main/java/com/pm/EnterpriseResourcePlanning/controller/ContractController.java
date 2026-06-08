@@ -3,7 +3,7 @@ package com.pm.EnterpriseResourcePlanning.controller;
 import com.pm.EnterpriseResourcePlanning.dto.filters.ContractFilterDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ContractUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ContractsRequestDto;
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.ContractResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.ProjectResponseDto;
 import com.pm.EnterpriseResourcePlanning.usecases.ContractUseCase;
@@ -35,7 +35,7 @@ public class ContractController {
 
     @PostMapping("/organizations")
     @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS')")
-    public ResponseEntity<Void> linkOrganizationContract(@Valid @RequestBody IntermediateRequestDto organizationContractRequestDto) {
+    public ResponseEntity<Void> linkOrganizationContract(@Valid @RequestBody LinkRequestDto organizationContractRequestDto) {
 
         contractUseCase.linkOrganizationContract(organizationContractRequestDto);
 
@@ -82,7 +82,7 @@ public class ContractController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS')")
     @DeleteMapping("/organizations")
-    public ResponseEntity<Void> deleteOrganizationContract(@Valid @RequestBody IntermediateRequestDto organizationContractRequestDto) {
+    public ResponseEntity<Void> deleteOrganizationContract(@Valid @RequestBody LinkRequestDto organizationContractRequestDto) {
 
         contractUseCase.deleteOrganizationContract(organizationContractRequestDto);
 
@@ -91,14 +91,14 @@ public class ContractController {
 
     @PostMapping("/projects")
     @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS')")
-    public ResponseEntity<Void> saveContractProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
+    public ResponseEntity<Void> saveContractProject(@Valid @RequestBody LinkRequestDto requestDto) {
         contractUseCase.saveContractProject(requestDto);
         return ResponseEntity.status(201).build();
     }
 
     @DeleteMapping("/projects")
     @PreAuthorize("hasAnyRole('ADMIN','MOD_CONTRACTS')")
-    public ResponseEntity<Void> deleteContractProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
+    public ResponseEntity<Void> deleteContractProject(@Valid @RequestBody LinkRequestDto requestDto) {
         contractUseCase.deleteContractProject(requestDto);
         return ResponseEntity.ok().build();
     }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -25,4 +26,19 @@ public class RefreshTokenEntity extends FullAuditEntity {
 
     @Column(nullable = false, name = "expiry_date")
     private Instant expiryDate;
+
+    @Override
+    public boolean equals(Object o){
+
+        if (this == o) return true;
+
+        if (!(o instanceof RefreshTokenEntity refreshTokenEntity)) return false;
+
+        return Objects.equals(refreshTokenEntity.id,this.id);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
+    }
 }

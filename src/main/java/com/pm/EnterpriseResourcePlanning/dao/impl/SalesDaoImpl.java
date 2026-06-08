@@ -10,6 +10,7 @@ import com.pm.EnterpriseResourcePlanning.repository.SalesRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -27,7 +28,7 @@ public class SalesDaoImpl implements SalesDao {
     }
 
     @Override
-    public Page<SalesEntity> getSalesPage(Pageable pageable) {
+    public Page<SalesEntity> getSalesPage(Pageable pageable, Specification<SalesEntity> specification) {
         return repository.findAll(pageable);
     }
 

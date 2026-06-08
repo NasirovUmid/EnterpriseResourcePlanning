@@ -5,6 +5,7 @@ import com.pm.EnterpriseResourcePlanning.utils.FullAuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -21,7 +22,7 @@ public class ClientEntity extends FullAuditEntity {
     @Column(columnDefinition = "uuid DEFAULT gen_random_uuid()", nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "full_name",nullable = false)
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
     @Column(nullable = false)
@@ -29,4 +30,19 @@ public class ClientEntity extends FullAuditEntity {
 
     @Column(nullable = false)
     private ClientType type;
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) return true;
+
+        if (!(o instanceof ClientEntity clientEntity)) return false;
+
+        return Objects.equals(this.id, clientEntity.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

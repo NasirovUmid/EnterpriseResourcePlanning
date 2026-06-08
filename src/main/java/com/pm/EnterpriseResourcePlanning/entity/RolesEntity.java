@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -30,4 +31,18 @@ public class RolesEntity extends FullAuditEntity {
     @Enumerated(EnumType.STRING)
     private RoleStatus status = RoleStatus.ACTIVE;
 
+    @Override
+    public boolean equals(Object o){
+
+        if (this == o) return true;
+
+        if(!(o instanceof RolesEntity roles)) return false;
+
+        return Objects.equals(roles.id,this.id);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
+    }
 }

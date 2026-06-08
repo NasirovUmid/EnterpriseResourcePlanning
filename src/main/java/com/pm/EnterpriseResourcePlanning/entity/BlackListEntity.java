@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Data
@@ -22,4 +23,22 @@ public class BlackListEntity {
     private Integer attemptsCount;
 
     private Instant lockUntil;
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) return true;
+
+        if (!(o instanceof BlackListEntity blackListEntity)) return false;
+
+        return Objects.equals(id, blackListEntity.id);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + Objects.hashCode(attemptsCount);
+        result = 31 * result + Objects.hashCode(lockUntil);
+        return result;
+    }
 }

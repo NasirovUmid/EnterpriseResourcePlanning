@@ -7,8 +7,10 @@ import com.pm.EnterpriseResourcePlanning.dao.SalesDao;
 import com.pm.EnterpriseResourcePlanning.datasource.ProductDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.ProductSalesDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.SalesDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.helper.SortResolver;
 import com.pm.EnterpriseResourcePlanning.dto.filters.ProductFilterDto;
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.filters.SalesFilterDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProductSalesRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.SalesRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.ProductResponseDto;
@@ -18,13 +20,17 @@ import com.pm.EnterpriseResourcePlanning.entity.ProductsEntity;
 import com.pm.EnterpriseResourcePlanning.entity.SalesEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
 import com.pm.EnterpriseResourcePlanning.enums.SalesStatus;
+import com.pm.EnterpriseResourcePlanning.enums.SortType;
 import com.pm.EnterpriseResourcePlanning.exceptions.AlreadyExistsException;
 import com.pm.EnterpriseResourcePlanning.specifications.ProductsSpecifications;
+import com.pm.EnterpriseResourcePlanning.specifications.SalesSpecification;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,13 +61,19 @@ public class SalesUseCase {
         if (contracts.getAmount() < salesRequestDto.totalPrice()) {
             throw new BadRequestException();
         }
-
         return salesDataSource.saveSales(salesRequestDto.contractsId(), salesRequestDto.totalPrice(), salesRequestDto.date(), salesRequestDto.status());
     }
 
     @Transactional(readOnly = true)
-    public Page<SalesResponseDto> getSalesPages(int page, int size) {
-        return salesDataSource.getSalesPage(PageRequest.of(page, size));
+    public Page<SalesResponseDto> getSalesPages(int page, int size, SalesFilterDto salesFilterDto, String sort) {
+
+        Specification<SalesEntity> specification = SalesSpecification.build(salesFilterDto);
+
+        Sort sort1 = SortResolver.resolver(SortType.SALES, sort);
+
+        Pageable pageable = PageRequest.of(page, size, sort1);
+
+        return salesDataSource.getSalesPage(pageable, specification);
     }
 
     @Transactional(readOnly = true)
@@ -70,7 +82,9 @@ public class SalesUseCase {
                 ProductsSpecifications.build(productFilterDto.name(), productFilterDto.priceGreater(), productFilterDto.priceLower(),
                         productFilterDto.unitGreater(), productFilterDto.unitLower(), productFilterDto.status());
 
-        return productDataSource.getProductsPage(PageRequest.of(page, size, ProductsUseCase.toProductEntitySort(sort)), specification);
+        Sort sort1 = SortResolver.resolver(SortType.PRODUCT, sort);
+
+        return productDataSource.getProductsPage(PageRequest.of(page, size, sort1), specification);
     }
 
     @Transactional(readOnly = true)
@@ -112,12 +126,15 @@ public class SalesUseCase {
             productSalesDataSource.saveProductSales(product.getId(), productSalesRequestDto.salesId(), productSalesRequestDto.quantity(), totalPrice);
             productDao.updateProductUnit(productSalesRequestDto.quantity(), product.getId());
         }
-
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void deleteProductSales(@Valid IntermediateRequestDto requestDto) {
-        productSalesDataSource.removeProductSales(requestDto.uuid(), requestDto.uuid1());
+    public void deleteProductSales(@Valid LinkRequestDto requestDto) {
+
+        UUID productId = requestDto.entityId();
+        UUID salesId = requestDto.relatedEntityId();
+
+        productSalesDataSource.removeProductSales(productId, salesId);
     }
 
     @Transactional(readOnly = true)

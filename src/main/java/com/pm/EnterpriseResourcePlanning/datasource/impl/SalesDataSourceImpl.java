@@ -7,10 +7,12 @@ import com.pm.EnterpriseResourcePlanning.datasource.SalesDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.helper.MessageAlertDataSource;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.SalesResponseDto;
 import com.pm.EnterpriseResourcePlanning.entity.ContractsEntity;
+import com.pm.EnterpriseResourcePlanning.entity.SalesEntity;
 import com.pm.EnterpriseResourcePlanning.enums.SalesStatus;
 import com.pm.EnterpriseResourcePlanning.mapper.SalesMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -35,8 +37,8 @@ public class SalesDataSourceImpl extends MessageAlertDataSource implements Sales
     }
 
     @Override
-    public Page<SalesResponseDto> getSalesPage(Pageable pageable) {
-        return execute(() -> salesDao.getSalesPage(pageable).map(salesMapper::toDto));
+    public Page<SalesResponseDto> getSalesPage(Pageable pageable, Specification<SalesEntity> specification) {
+        return execute(() -> salesDao.getSalesPage(pageable,specification).map(salesMapper::toDto));
     }
 
     @Override

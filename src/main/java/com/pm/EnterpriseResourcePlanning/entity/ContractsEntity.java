@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -32,4 +34,19 @@ public class ContractsEntity extends FullAuditEntity {
 
     @Column(name = "end_date", nullable = false)
     private Instant endDate;
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (this == o) return true;
+
+        if (!(o instanceof ContractsEntity contracts)) return false;
+
+        return Objects.equals(id, contracts.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

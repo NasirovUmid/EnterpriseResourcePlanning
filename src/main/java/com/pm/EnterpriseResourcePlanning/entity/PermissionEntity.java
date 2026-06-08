@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -31,4 +32,18 @@ public class PermissionEntity extends FullAuditEntity {
     @Column(name = "action_id", nullable = false)
     private UUID actionId;
 
+    @Override
+    public boolean equals(Object o){
+
+        if (this == o) return true;
+
+        if (!(o instanceof PermissionEntity permissionEntity)) return false;
+
+        return Objects.equals(this.id,permissionEntity.id);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
+    }
 }

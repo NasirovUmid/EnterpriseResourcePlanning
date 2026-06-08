@@ -3,7 +3,7 @@ package com.pm.EnterpriseResourcePlanning.usecases;
 import com.pm.EnterpriseResourcePlanning.datasource.RoleDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.RolePermissionDataSource;
 import com.pm.EnterpriseResourcePlanning.datasource.UserRoleDataSource;
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.RoleRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.PermissionResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.RoleResponseDto;
@@ -52,22 +52,33 @@ public class RoleUseCase {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void connectRolePermission(@Valid IntermediateRequestDto rolePermissionRequestDto) {
+    public void connectRolePermission(@Valid LinkRequestDto rolePermissionRequestDto) {
+
+        UUID roleId = rolePermissionRequestDto.entityId();
+        UUID permissionId = rolePermissionRequestDto.relatedEntityId();
 
         if (rolePermissionExists(rolePermissionRequestDto)) {
-            throw new AlreadyExistsException(ErrorMessages.ROLE_PERMISSION_ALREADY_EXISTS, rolePermissionRequestDto.uuid(), rolePermissionRequestDto.uuid1());
+            throw new AlreadyExistsException(ErrorMessages.ROLE_PERMISSION_ALREADY_EXISTS, roleId, permissionId);
         }
 
-        rolePermissionDataSource.saveRolePermissions(rolePermissionRequestDto.uuid(), rolePermissionRequestDto.uuid1());
+        rolePermissionDataSource.saveRolePermissions(roleId, permissionId);
     }
 
-    public boolean rolePermissionExists(@Valid IntermediateRequestDto rolePermissionRequestDto) {
-        return rolePermissionDataSource.exists(rolePermissionRequestDto.uuid(), rolePermissionRequestDto.uuid1());
+    public boolean rolePermissionExists(@Valid LinkRequestDto rolePermissionRequestDto) {
+
+        UUID roleId = rolePermissionRequestDto.entityId();
+        UUID permissionId = rolePermissionRequestDto.relatedEntityId();
+
+        return rolePermissionDataSource.exists(roleId, permissionId);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void deleteRolePermissionLink(@Valid IntermediateRequestDto rolePermissionRequestDto) {
-        rolePermissionDataSource.removeUserRoleLink(rolePermissionRequestDto.uuid(), rolePermissionRequestDto.uuid1());
+    public void deleteRolePermissionLink(@Valid LinkRequestDto rolePermissionRequestDto) {
+
+        UUID roleId = rolePermissionRequestDto.entityId();
+        UUID permissionId = rolePermissionRequestDto.relatedEntityId();
+
+        rolePermissionDataSource.removeUserRoleLink(roleId, permissionId);
     }
 
     @Transactional(readOnly = true)

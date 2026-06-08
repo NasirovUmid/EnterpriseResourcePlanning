@@ -1,7 +1,7 @@
 package com.pm.EnterpriseResourcePlanning.controller;
 
 import com.pm.EnterpriseResourcePlanning.dto.filters.OrganizationFilterDto;
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.OrganizationRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.OrganizationUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.OrganizationResponseDto;
@@ -34,7 +34,7 @@ public class OrganizationController {
 
     @PostMapping("/users")
     @PreAuthorize("hasAnyRole('ADMIN','MOD_ORGANIZATIONS')")
-    public ResponseEntity<Void> createUserOrganizationLink(@Valid @RequestBody IntermediateRequestDto userOrganizationRequestDto) {
+    public ResponseEntity<Void> createUserOrganizationLink(@Valid @RequestBody LinkRequestDto userOrganizationRequestDto) {
 
         organizationUseCase.createUserOrganizationLink(userOrganizationRequestDto);
 
@@ -65,7 +65,7 @@ public class OrganizationController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MOD_ORGANIZATIONS')")
     @DeleteMapping("/user")
-    public ResponseEntity<Void> removeUserOrganizationLink(@Valid @RequestBody IntermediateRequestDto userOrganizationRequestDto) {
+    public ResponseEntity<Void> removeUserOrganizationLink(@Valid @RequestBody LinkRequestDto userOrganizationRequestDto) {
 
         organizationUseCase.removeUserOrganizationLink(userOrganizationRequestDto);
         return ResponseEntity.ok().build();

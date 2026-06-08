@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-public record IntermediateRequestDto(
+public record LinkRequestDto(
         @NotNull
-        UUID uuid,
+        UUID entityId,
         @NotNull
-        UUID uuid1
+        UUID relatedEntityId
 ) {
 }

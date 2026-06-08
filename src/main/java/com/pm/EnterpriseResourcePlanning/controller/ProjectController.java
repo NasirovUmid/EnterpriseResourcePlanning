@@ -1,6 +1,6 @@
 package com.pm.EnterpriseResourcePlanning.controller;
 
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProjectRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ProjectUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.OrganizationResponseDto;
@@ -36,7 +36,7 @@ public class ProjectController {
 
     @PostMapping("/organizations")
     @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
-    public ResponseEntity<Void> createProjectOrganizationLink(@Valid @RequestBody IntermediateRequestDto projectOrganizationDto) {
+    public ResponseEntity<Void> createProjectOrganizationLink(@Valid @RequestBody LinkRequestDto projectOrganizationDto) {
 
         projectUseCase.linkProjectOrganization(projectOrganizationDto);
 
@@ -91,7 +91,7 @@ public class ProjectController {
 
     @DeleteMapping("/organizations")
     @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
-    public ResponseEntity<Void> deleteProjectOrganizationLink(@Valid @RequestBody IntermediateRequestDto projectOrganizationRequestDto) {
+    public ResponseEntity<Void> deleteProjectOrganizationLink(@Valid @RequestBody LinkRequestDto projectOrganizationRequestDto) {
 
         projectUseCase.deleteProjectOrganizationLink(projectOrganizationRequestDto);
 
@@ -100,7 +100,7 @@ public class ProjectController {
 
     @PostMapping("/user")
     @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
-    public ResponseEntity<Void> saveUserProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
+    public ResponseEntity<Void> saveUserProject(@Valid @RequestBody LinkRequestDto requestDto) {
 
         projectUseCase.saveUserProject(requestDto);
 
@@ -109,7 +109,7 @@ public class ProjectController {
 
     @PreAuthorize("hasAnyRole('ADMIN','MOD_PROJECTS')")
     @DeleteMapping("/project-user")
-    public ResponseEntity<Void> deleteUserProject(@Valid @RequestBody IntermediateRequestDto requestDto) {
+    public ResponseEntity<Void> deleteUserProject(@Valid @RequestBody LinkRequestDto requestDto) {
 
         projectUseCase.removeUserProject(requestDto);
 

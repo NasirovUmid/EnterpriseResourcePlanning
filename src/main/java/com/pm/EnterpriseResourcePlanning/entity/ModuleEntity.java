@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -24,4 +25,19 @@ public class ModuleEntity extends FullAuditEntity {
 
     @Column(nullable = false)
     private String name;
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) return true;
+
+        if (!(o instanceof ModuleEntity moduleEntity)) return false;
+
+        return Objects.equals(this.id, moduleEntity.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

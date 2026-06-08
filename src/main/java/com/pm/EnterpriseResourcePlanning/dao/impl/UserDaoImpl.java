@@ -3,6 +3,7 @@ package com.pm.EnterpriseResourcePlanning.dao.impl;
 import com.pm.EnterpriseResourcePlanning.dao.UserDao;
 import com.pm.EnterpriseResourcePlanning.entity.UserEntity;
 import com.pm.EnterpriseResourcePlanning.enums.ErrorMessages;
+import com.pm.EnterpriseResourcePlanning.exceptions.BadCredentialsException;
 import com.pm.EnterpriseResourcePlanning.exceptions.NotFoundException;
 import com.pm.EnterpriseResourcePlanning.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +26,8 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void updateUser(UUID id, String fullName,String phoneNumber) {
-        repository.updateUser(id, fullName,phoneNumber);
+    public void updateUser(UUID id, String fullName, String phoneNumber) {
+        repository.updateUser(id, fullName, phoneNumber);
     }
 
     @Override
@@ -51,7 +52,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public UserEntity findUserByUsername(String username) {
-        return repository.findUserEntityByUsername(username).orElseThrow(() -> new NotFoundException(ErrorMessages.USER_NOT_FOUND, username));
+        return repository.findUserEntityByUsername(username).orElseThrow(() -> new BadCredentialsException(ErrorMessages.WRONG_CREDENTIALS, username));
     }
 
     @Override

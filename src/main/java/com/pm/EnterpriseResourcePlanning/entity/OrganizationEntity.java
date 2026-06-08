@@ -4,6 +4,7 @@ import com.pm.EnterpriseResourcePlanning.utils.FullAuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -29,5 +30,19 @@ public class OrganizationEntity extends FullAuditEntity {
     @Column(nullable = false)
     private String address;
 
+    @Override
+    public boolean equals(Object o){
+
+        if (this == o) return true;
+
+        if (!(o instanceof OrganizationEntity organizationEntity)) return false;
+
+        return Objects.equals(organizationEntity.id, this.id);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
+    }
 }
 

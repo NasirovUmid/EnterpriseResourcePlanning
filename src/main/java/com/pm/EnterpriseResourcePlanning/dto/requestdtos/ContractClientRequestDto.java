@@ -8,9 +8,9 @@ import java.util.UUID;
 
 public record ContractClientRequestDto(
         @NotNull
-        UUID uuid,
+        UUID contractId,
         @NotNull
-        UUID uuid1,
+        UUID clientId,
         @NotNull @Positive @Digits(integer = 2, fraction = 0)
         Integer ownershipShare
 ) {

@@ -1,10 +1,12 @@
 package com.pm.EnterpriseResourcePlanning.usecases;
 
 import com.pm.EnterpriseResourcePlanning.datasource.PermissionDataSource;
+import com.pm.EnterpriseResourcePlanning.datasource.helper.SortResolver;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.PermissionRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.PermissionUpdateRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.PermissionResponseDto;
 import com.pm.EnterpriseResourcePlanning.entity.PermissionEntity;
+import com.pm.EnterpriseResourcePlanning.enums.SortType;
 import com.pm.EnterpriseResourcePlanning.specifications.PermissionSpecification;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,23 +37,11 @@ public class PermissionUseCase {
 
         Specification<PermissionEntity> specification = PermissionSpecification.build(name);
 
-        Pageable pageable = PageRequest.of(page, size, toPermissionEntitySort(sort));
+        Sort sort1 = SortResolver.resolver(SortType.PERMISSION,sort);
+
+        Pageable pageable = PageRequest.of(page, size, sort1);
 
         return dataSource.getPermissionPage(specification, pageable);
-    }
-
-    private Sort toPermissionEntitySort(String sort) {
-
-        if (sort == null || !sort.contains(",")) {
-            return Sort.by("name").ascending(); // Сортировка по умолчанию
-        }
-        String[] parts = sort.split(",");
-        String field = parts[0];
-        String direction = parts[1];
-
-        return direction.equalsIgnoreCase("desc")
-                ? Sort.by(field).descending()
-                : Sort.by(field).ascending();
     }
 
     @Transactional(readOnly = true)

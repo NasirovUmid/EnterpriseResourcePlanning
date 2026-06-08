@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -30,6 +31,21 @@ public class ProjectEntity extends FullAuditEntity {
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(columnDefinition = "project_status")
     private ProjectStatus status;
+
+    @Override
+    public boolean equals(Object o){
+
+        if (o == this) return true;
+
+        if (!(o instanceof ProjectEntity projectEntity)) return false;
+
+        return Objects.equals(this.id, projectEntity.id);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash();
+    }
 
     @Override
     public String toString() {

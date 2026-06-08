@@ -8,6 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -38,4 +39,18 @@ public class SalesEntity extends FullAuditEntity {
     @Column(columnDefinition = "sales_status")
     private SalesStatus status;
 
+    @Override
+    public boolean equals(Object o){
+
+        if (this == o) return true;
+
+        if (!(o instanceof SalesEntity salesEntity)) return false;
+
+        return Objects.equals(salesEntity.id,this.id);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
+    }
 }

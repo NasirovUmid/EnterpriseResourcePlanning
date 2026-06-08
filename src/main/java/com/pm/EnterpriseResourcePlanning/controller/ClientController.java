@@ -3,7 +3,7 @@ package com.pm.EnterpriseResourcePlanning.controller;
 import com.pm.EnterpriseResourcePlanning.dto.filters.ClientFilterDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ClientRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.requestdtos.ContractClientRequestDto;
-import com.pm.EnterpriseResourcePlanning.dto.requestdtos.IntermediateRequestDto;
+import com.pm.EnterpriseResourcePlanning.dto.requestdtos.LinkRequestDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.ClientResponseDto;
 import com.pm.EnterpriseResourcePlanning.dto.responsdtos.ContractResponseDto;
 import com.pm.EnterpriseResourcePlanning.usecases.ClientUseCase;
@@ -56,16 +56,14 @@ public class ClientController {
         return ResponseEntity.ok().build();
     }
 
-
     @PreAuthorize("hasAnyRole('ADMIN','MOD_ORGANIZATIONS')")
     @DeleteMapping("/contracts")
-    public ResponseEntity<Void> removeContractClient(@Valid @RequestBody IntermediateRequestDto requestDto) {
+    public ResponseEntity<Void> removeContractClient(@Valid @RequestBody LinkRequestDto requestDto) {
 
         clientUseCase.removeContractClient(requestDto);
 
         return ResponseEntity.ok().build();
     }
-
 
     @GetMapping("/contracts/{id}")
     public List<ContractResponseDto> getClientContracts(@PathVariable(name = "id") UUID id) {

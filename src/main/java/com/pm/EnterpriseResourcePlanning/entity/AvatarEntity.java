@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -27,4 +28,19 @@ public class AvatarEntity extends FullAuditEntity {
 
     @Column(name = "user_id")
     private UUID UserId;
+
+    @Override
+    public boolean equals(Object o) {
+
+        if (o == this) return true;
+
+        if (!(o instanceof AvatarEntity avatar)) return false;
+
+        return Objects.equals(avatar.id, this.id);
+    }
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
+    }
 }
